@@ -1,9 +1,12 @@
 mod board;
 mod components;
+mod pointer;
 mod tile;
 pub use crate::board::*;
 pub use crate::components::*;
+pub use crate::pointer::*;
 pub use crate::tile::*;
+pub use bevy::window::CursorGrabMode;
 pub use bevy::{prelude::*, window::PrimaryWindow};
 pub use rand::prelude::*;
 
@@ -26,10 +29,13 @@ fn main() {
     App::new()
         .insert_resource(ClearColor(Color::rgb(0.04, 0.04, 0.5)))
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
+        .add_plugin(PointerPlugin)
         .add_startup_system(setup_system.in_base_set(StartupSet::Startup))
         .add_startup_system(create_gameboard.in_base_set(StartupSet::Startup))
         .add_startup_system(draw_background.in_base_set(StartupSet::PostStartup))
         .add_startup_system(fill_gameboard.in_base_set(StartupSet::PostStartup))
+        .add_system(cursor_grab_system)
+        .add_system(click_processor)
         .run();
 }
 
@@ -38,7 +44,7 @@ fn setup_system(
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn((Camera2dBundle::default(), MainCamera));
 
     let background_handle: Handle<Image> = asset_server.load(BACKGROUND);
 
@@ -155,6 +161,35 @@ fn fill_gameboard(
                 game_board.backward.insert(tile_entity, index);
                 game_board.forward[index] = Some(tile_entity);
             }
+        }
+    }
+}
+
+fn cursor_grab_system(
+    mut window_query: Query<&mut Window, With<PrimaryWindow>>,
+    btn: Res<Input<MouseButton>>,
+    key: Res<Input<KeyCode>>,
+) {
+    let mut window = window_query.get_single_mut().unwrap();
+
+    if btn.just_pressed(MouseButton::Left) {
+        // if you want to use the cursor, but not let it leave the window,
+        // use `Confined` mode:
+        window.cursor.grab_mode = CursorGrabMode::Confined;
+    }
+
+    if key.just_pressed(KeyCode::Escape) {
+        window.cursor.grab_mode = CursorGrabMode::None;
+    }
+}
+
+fn click_processor(mut left_click: EventReader<LeftClickEvent>) {
+    if !left_click.is_empty() {
+        for event in left_click.iter() {
+            println!(
+                "Someone clicked! World coords: {}/{}",
+                event.position.x, event.position.y
+            );
         }
     }
 }
