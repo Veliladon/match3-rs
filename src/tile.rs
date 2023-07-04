@@ -1,13 +1,9 @@
+use bevy::prelude::Component;
 use num;
 use num_derive::FromPrimitive;
 use rand::{thread_rng, Rng};
 
-#[derive(Copy, Clone, PartialEq, Eq)]
-pub struct Tile {
-    pub color: TileColor,
-    pub mark: TileMarking,
-}
-#[derive(Copy, Clone, PartialEq, Eq, FromPrimitive)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, FromPrimitive)]
 
 pub enum TileColor {
     LightYellow = 0,
@@ -30,7 +26,7 @@ pub enum TileColor {
     DarkGrey = 17,
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, FromPrimitive)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, FromPrimitive)]
 pub enum TileMarking {
     Blank = 0,
     Cross = 1,
@@ -40,7 +36,13 @@ pub enum TileMarking {
     Star = 5,
 }
 
-impl Tile {
+#[derive(Copy, Clone, PartialEq, Debug, Component)]
+pub struct TileDesc {
+    pub color: TileColor,
+    pub mark: TileMarking,
+}
+
+impl TileDesc {
     pub fn new() -> Self {
         let random_color: usize = thread_rng().gen_range(0..17);
         let random_mark: usize = thread_rng().gen_range(0..5);
@@ -57,3 +59,26 @@ impl Tile {
         (self.color as usize * 6) + self.mark as usize
     }
 }
+
+// impl Tile {
+/* pub fn new(x: usize, y: usize) -> Self {
+        let random_color: usize = thread_rng().gen_range(0..17);
+        let random_mark: usize = thread_rng().gen_range(0..5);
+        let new_color: TileColor = num::FromPrimitive::from_usize(random_color).unwrap();
+        let new_mark: TileMarking = num::FromPrimitive::from_usize(random_mark).unwrap();
+        /* let tile = Tile {
+            color: new_color,
+            mark: new_mark,
+        }; */
+        //let position: TilePosition = TilePosition { x: x, y: y };
+
+        Self {
+            color: new_color,
+            mark: new_mark,
+        }
+    }
+
+    pub fn get_index(&self) -> usize {
+        (self.color as usize * 6) + self.mark as usize
+    }
+} */
