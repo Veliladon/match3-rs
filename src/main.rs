@@ -66,8 +66,10 @@ fn setup_system(
     commands.insert_resource(game_assets);
 }
 
-fn create_gameboard(mut commands: Commands) {
-    let gameboard = board::GameBoard::new();
+fn create_gameboard(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
+    let window = window_query.get_single().unwrap();
+    let window_size = Vec2::new(window.width().into(), window.height().into());
+    let gameboard = board::GameBoard::new(window_size);
     commands.insert_resource(gameboard);
 }
 
@@ -126,10 +128,18 @@ fn fill_gameboard(
     mut commands: Commands,
     game_assets: Res<GameAssets>,
     mut game_board: ResMut<GameBoard>,
-    window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
     println!("Starting to assemble gameboard");
     println!("{:?}", game_board.forward);
+
+    let tile_width = TILE_WIDTH * SPRITE_SCALE;
+    let tile_height = TILE_HEIGHT * SPRITE_SCALE;
+    let half_tile_width = tile_width / 2.0;
+    let half_tile_height = tile_height / 2.0;
+    let x_offset = half_tile_width + game_board.origin.x;
+    let y_offset = half_tile_height + game_board.origin.y;
+    println!("x offset: {}", x_offset);
+    println!("y offset: {}", y_offset);
 
     for y in 0..game_board.height {
         for x in 0..game_board.width {
@@ -142,10 +152,8 @@ fn fill_gameboard(
                         texture_atlas: game_assets.tiles.clone(),
                         transform: Transform {
                             translation: Vec3::new(
-                                x as f32 * SPRITE_SCALE * 32.0 + 56.0,
-                                y as f32 * SPRITE_SCALE * 32.0
-                                    - (BOARD_HEIGHT as f32 / 2.0 * TILE_HEIGHT * SPRITE_SCALE
-                                        - (TILE_HEIGHT * SPRITE_SCALE / 2.0)),
+                                x as f32 * tile_width + x_offset,
+                                y as f32 * tile_width + y_offset,
                                 2.0,
                             ),
                             scale: Vec3::new(SPRITE_SCALE, SPRITE_SCALE, 1.0),
