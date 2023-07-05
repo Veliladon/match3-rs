@@ -26,6 +26,29 @@ impl GameBoard {
     pub fn idx(&self, x: usize, y: usize) -> usize {
         return y * self.width + x;
     }
+
+    pub fn find_tile(&self, position: Vec2) -> Option<usize> {
+        let tile_width = TILE_WIDTH * SPRITE_SCALE;
+        let tile_height = TILE_HEIGHT * SPRITE_SCALE;
+        let board_width = tile_width * BOARD_WIDTH as f32;
+        let board_height = tile_height * BOARD_HEIGHT as f32;
+        let grid_x = position.x - self.origin.x;
+        let grid_y = -position.y - self.origin.y;
+
+        if grid_x < 0.0 || grid_x > board_width {
+            return None;
+        }
+        if grid_y < 0.0 || grid_y > board_height {
+            return None;
+        }
+
+        println!("Looking for tile in {}, {}", grid_x, grid_y);
+        let x = (grid_x / tile_width) as usize;
+        let y = (grid_y / tile_height) as usize;
+        println!("x: {}, y: {}", x, y);
+
+        Some(self.idx(x, y))
+    }
 }
 
 pub fn find_origin(windowsize: Vec2) -> Vec2 {

@@ -2,6 +2,7 @@ mod board;
 mod components;
 mod pointer;
 mod tile;
+
 pub use crate::board::*;
 pub use crate::components::*;
 pub use crate::pointer::*;
@@ -191,9 +192,35 @@ fn cursor_grab_system(
     }
 }
 
-fn click_processor(mut left_click: EventReader<LeftClickEvent>) {
+fn click_processor(
+    mut commands: Commands,
+    mut left_click: EventReader<LeftClickEvent>,
+    game_board: Res<GameBoard>,
+    mut selected: Query<(Entity, &mut SelectedTile)>,
+) {
     if !left_click.is_empty() {
         for event in left_click.iter() {
+            if let Some(index) = game_board.find_tile(event.position) {
+                let entity = game_board.forward.get(index).unwrap().unwrap();
+
+                if selected.is_empty() {
+                    commands.entity(entity).insert(SelectedTile);
+                    println!("Selected Tile: {}", index);
+                }
+
+                if !selected.is_empty() {
+                    let current_selection = selected.get_single_mut().unwrap();
+                    if current_selection.0 != entity {
+                        commands
+                            .entity(current_selection.0)
+                            .remove::<SelectedTile>();
+                        commands.entity(entity).insert(SelectedTile);
+                        println!("Deselected Tile: {:?}", current_selection.0);
+                        println!("Selected Tile: {}", index);
+                    }
+                }
+            }
+
             println!(
                 "Someone clicked! World coords: {}/{}",
                 event.position.x, event.position.y
