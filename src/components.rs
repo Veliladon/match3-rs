@@ -10,7 +10,7 @@ pub struct MainCamera;
 pub struct Tile;
 
 #[derive(Component)]
-pub struct SelectedTile;
+pub struct TileHighlight;
 
 #[derive(Copy, Clone, PartialEq, Component)]
 pub struct TilePosition {

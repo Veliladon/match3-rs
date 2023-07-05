@@ -5,7 +5,9 @@ pub struct PointerPlugin;
 
 impl Plugin for PointerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<LeftClickEvent>().add_system(cursor_system);
+        app.add_event::<LeftClickEvent>()
+            .add_system(cursor_system)
+            .add_system(click_processor.after(cursor_system));
     }
 }
 
@@ -34,6 +36,47 @@ fn cursor_system(
             println!(
                 "Clicked! World coords: {}/{}",
                 world_position.x, world_position.y
+            );
+        }
+    }
+}
+fn click_processor(
+    mut commands: Commands,
+    mut left_click: EventReader<LeftClickEvent>,
+    game_board: Res<GameBoard>,
+    selected_tile: Option<ResMut<SelectedTile>>,
+) {
+    if !left_click.is_empty() {
+        for event in left_click.iter() {
+            match game_board.find_tile(event.position) {
+                Some(index) => {
+                    let x = index % BOARD_WIDTH;
+                    let y = index / BOARD_WIDTH;
+                    match &selected_tile {
+                        Some(selected) => {
+                            if selected.x == x && selected.y == y {
+                                commands.remove_resource::<SelectedTile>();
+                                println!("Deselected Tile: {}, {}", x, y);
+                            } else {
+                                commands.insert_resource(SelectedTile { x, y });
+                                println!("Changed Selected Tile: {}, {}", x, y);
+                            }
+                        }
+                        None => {
+                            commands.insert_resource(SelectedTile { x, y });
+                            println!("Selected New Tile: {}, {}", x, y);
+                        }
+                    }
+                }
+                None => {
+                    commands.remove_resource::<SelectedTile>();
+                    println!("Empty Tile Selected, Deselecting!");
+                }
+            }
+
+            println!(
+                "Someone clicked! World coords: {}/{}",
+                event.position.x, event.position.y
             );
         }
     }

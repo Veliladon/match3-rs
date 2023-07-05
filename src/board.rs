@@ -28,10 +28,8 @@ impl GameBoard {
     }
 
     pub fn find_tile(&self, position: Vec2) -> Option<usize> {
-        let tile_width = TILE_WIDTH * SPRITE_SCALE;
-        let tile_height = TILE_HEIGHT * SPRITE_SCALE;
-        let board_width = tile_width * BOARD_WIDTH as f32;
-        let board_height = tile_height * BOARD_HEIGHT as f32;
+        let board_width = TILE_WIDTH * BOARD_WIDTH as f32;
+        let board_height = TILE_HEIGHT * BOARD_HEIGHT as f32;
         let grid_x = position.x - self.origin.x;
         let grid_y = -position.y - self.origin.y;
 
@@ -43,8 +41,8 @@ impl GameBoard {
         }
 
         println!("Looking for tile in {}, {}", grid_x, grid_y);
-        let x = (grid_x / tile_width) as usize;
-        let y = (grid_y / tile_height) as usize;
+        let x = (grid_x / TILE_WIDTH) as usize;
+        let y = (grid_y / TILE_HEIGHT) as usize;
         println!("x: {}, y: {}", x, y);
 
         Some(self.idx(x, y))
@@ -54,8 +52,8 @@ impl GameBoard {
 pub fn find_origin(windowsize: Vec2) -> Vec2 {
     let window_height = windowsize.y;
     let window_width = windowsize.x;
-    let board_height = BOARD_HEIGHT as f32 * SPRITE_SCALE * TILE_HEIGHT;
-    let board_width = BOARD_WIDTH as f32 * SPRITE_SCALE * TILE_WIDTH;
+    let board_height = BOARD_HEIGHT as f32 * TILE_HEIGHT;
+    let board_width = BOARD_WIDTH as f32 * TILE_WIDTH;
 
     let top_margin = (window_height / 2.0) - (board_height / 2.0);
     println!("Top Margin: {}", top_margin);

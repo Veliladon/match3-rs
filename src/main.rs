@@ -1,29 +1,42 @@
 mod board;
 mod components;
+mod effects;
 mod pointer;
 mod tile;
 
 pub use crate::board::*;
 pub use crate::components::*;
+pub use crate::effects::*;
 pub use crate::pointer::*;
 pub use crate::tile::*;
+
 pub use bevy::window::CursorGrabMode;
 pub use bevy::{prelude::*, window::PrimaryWindow};
 pub use rand::prelude::*;
 
 const BACKGROUND: &str = "background.png";
 const TILE_SHEET: &str = "match3.png";
-const TILE_WIDTH: f32 = 32.0;
-const TILE_HEIGHT: f32 = 32.0;
+const SHEET_TILE_WIDTH: f32 = 32.0;
+const SHEET_TILE_HEIGHT: f32 = 32.0;
 const BOARD_WIDTH: usize = 8;
 const BOARD_HEIGHT: usize = 8;
 const SPRITE_SCALE: f32 = 2.0;
 const BORDER_SIZE: f32 = 5.0;
+const TILE_WIDTH: f32 = SHEET_TILE_WIDTH * SPRITE_SCALE;
+const TILE_HEIGHT: f32 = SHEET_TILE_HEIGHT * SPRITE_SCALE;
+const HALF_TILE_WIDTH: f32 = TILE_WIDTH / 2.0;
+const HALF_TILE_HEIGHT: f32 = TILE_HEIGHT / 2.0;
 
 #[derive(Resource)]
-struct GameAssets {
+pub struct GameAssets {
     background: Handle<Image>,
     tiles: Handle<TextureAtlas>,
+}
+
+#[derive(Resource)]
+pub struct SelectedTile {
+    x: usize,
+    y: usize,
 }
 
 fn main() {
@@ -31,12 +44,12 @@ fn main() {
         .insert_resource(ClearColor(Color::rgb(0.04, 0.04, 0.5)))
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugin(PointerPlugin)
+        .add_plugin(EffectsPlugin)
         .add_startup_system(setup_system.in_base_set(StartupSet::Startup))
         .add_startup_system(create_gameboard.in_base_set(StartupSet::Startup))
         .add_startup_system(draw_background.in_base_set(StartupSet::PostStartup))
         .add_startup_system(fill_gameboard.in_base_set(StartupSet::PostStartup))
         .add_system(cursor_grab_system)
-        .add_system(click_processor)
         .run();
 }
 
@@ -52,7 +65,7 @@ fn setup_system(
     let tile_texture_handle = asset_server.load(TILE_SHEET);
     let tile_texture_atlas = TextureAtlas::from_grid(
         tile_texture_handle,
-        Vec2::new(TILE_WIDTH, TILE_HEIGHT),
+        Vec2::new(SHEET_TILE_WIDTH, SHEET_TILE_HEIGHT),
         12,
         9,
         None,
@@ -110,13 +123,13 @@ fn draw_background(
             sprite: Sprite {
                 color: Color::rgb(0.0, 0.0, 0.0),
                 custom_size: Some(Vec2::new(
-                    TILE_WIDTH * SPRITE_SCALE * BOARD_WIDTH as f32 + (2.0 * BORDER_SIZE),
-                    TILE_HEIGHT * SPRITE_SCALE * BOARD_HEIGHT as f32 + (2.0 * BORDER_SIZE),
+                    TILE_WIDTH * BOARD_WIDTH as f32 + (2.0 * BORDER_SIZE),
+                    TILE_HEIGHT * BOARD_HEIGHT as f32 + (2.0 * BORDER_SIZE),
                 )),
                 ..default()
             },
             transform: Transform::from_translation(Vec3::new(
-                (BOARD_WIDTH / 2) as f32 * SPRITE_SCALE * TILE_WIDTH + 24.0,
+                (BOARD_WIDTH / 2) as f32 * TILE_WIDTH + 24.0,
                 0.0,
                 1.5,
             )),
@@ -133,12 +146,8 @@ fn fill_gameboard(
     println!("Starting to assemble gameboard");
     println!("{:?}", game_board.forward);
 
-    let tile_width = TILE_WIDTH * SPRITE_SCALE;
-    let tile_height = TILE_HEIGHT * SPRITE_SCALE;
-    let half_tile_width = tile_width / 2.0;
-    let half_tile_height = tile_height / 2.0;
-    let x_offset = half_tile_width + game_board.origin.x;
-    let y_offset = half_tile_height + game_board.origin.y;
+    let x_offset = HALF_TILE_WIDTH + game_board.origin.x;
+    let y_offset = HALF_TILE_HEIGHT + game_board.origin.y;
     println!("x offset: {}", x_offset);
     println!("y offset: {}", y_offset);
 
@@ -153,8 +162,8 @@ fn fill_gameboard(
                         texture_atlas: game_assets.tiles.clone(),
                         transform: Transform {
                             translation: Vec3::new(
-                                x as f32 * tile_width + x_offset,
-                                y as f32 * tile_width + y_offset,
+                                x as f32 * TILE_WIDTH + x_offset,
+                                y as f32 * TILE_HEIGHT + y_offset,
                                 2.0,
                             ),
                             scale: Vec3::new(SPRITE_SCALE, SPRITE_SCALE, 1.0),
@@ -189,42 +198,5 @@ fn cursor_grab_system(
 
     if key.just_pressed(KeyCode::Escape) {
         window.cursor.grab_mode = CursorGrabMode::None;
-    }
-}
-
-fn click_processor(
-    mut commands: Commands,
-    mut left_click: EventReader<LeftClickEvent>,
-    game_board: Res<GameBoard>,
-    mut selected: Query<(Entity, &mut SelectedTile)>,
-) {
-    if !left_click.is_empty() {
-        for event in left_click.iter() {
-            if let Some(index) = game_board.find_tile(event.position) {
-                let entity = game_board.forward.get(index).unwrap().unwrap();
-
-                if selected.is_empty() {
-                    commands.entity(entity).insert(SelectedTile);
-                    println!("Selected Tile: {}", index);
-                }
-
-                if !selected.is_empty() {
-                    let current_selection = selected.get_single_mut().unwrap();
-                    if current_selection.0 != entity {
-                        commands
-                            .entity(current_selection.0)
-                            .remove::<SelectedTile>();
-                        commands.entity(entity).insert(SelectedTile);
-                        println!("Deselected Tile: {:?}", current_selection.0);
-                        println!("Selected Tile: {}", index);
-                    }
-                }
-            }
-
-            println!(
-                "Someone clicked! World coords: {}/{}",
-                event.position.x, event.position.y
-            );
-        }
     }
 }
