@@ -22,7 +22,10 @@ pub fn add_sprite_to_selected_tile(
 
     match &selected_tile {
         Some(selected) => {
-            if highlight_query.is_empty() {
+            if let Ok((_, transform)) = &mut highlight_query.get_single_mut() {
+                transform.translation.x = selected.x as f32 * TILE_WIDTH + x_offset;
+                transform.translation.y = -(selected.y as f32 * TILE_HEIGHT + y_offset);
+            } else {
                 commands
                     .spawn(SpriteBundle {
                         sprite: Sprite {
@@ -42,15 +45,10 @@ pub fn add_sprite_to_selected_tile(
                         x: selected.x,
                         y: selected.y,
                     });
-            } else {
-                let transform = &mut highlight_query.get_single_mut().unwrap().1;
-                transform.translation.x = selected.x as f32 * TILE_WIDTH + x_offset;
-                transform.translation.y = -(selected.y as f32 * TILE_HEIGHT + y_offset);
             }
         }
         None => {
-            if !highlight_query.is_empty() {
-                let entity = highlight_query.get_single().unwrap().0;
+            if let Ok((entity, _)) = highlight_query.get_single_mut() {
                 commands.entity(entity).despawn();
             }
         }
