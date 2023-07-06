@@ -188,7 +188,7 @@ fn fill_gameboard(
     }
 }
 
-fn cursor_grab_system(
+/* fn cursor_grab_system(
     mut window_query: Query<&mut Window, With<PrimaryWindow>>,
     btn: Res<Input<MouseButton>>,
     key: Res<Input<KeyCode>>,
@@ -204,4 +204,4 @@ fn cursor_grab_system(
     if key.just_pressed(KeyCode::Escape) {
         window.cursor.grab_mode = CursorGrabMode::None;
     }
-}
+} */
