@@ -46,7 +46,6 @@ fn click_processor(
     mut left_click: EventReader<LeftClickEvent>,
     game_board: Res<GameBoard>,
     selected_tile: Option<ResMut<SelectedTile>>,
-    swap: Option<ResMut<TileSwap>>,
 ) {
     if !left_click.is_empty() {
         for event in left_click.iter() {
