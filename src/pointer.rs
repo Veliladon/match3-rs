@@ -1,5 +1,6 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
+use crate::board::*;
 use crate::*;
 pub struct PointerPlugin;
 
@@ -45,6 +46,7 @@ fn click_processor(
     mut left_click: EventReader<LeftClickEvent>,
     game_board: Res<GameBoard>,
     selected_tile: Option<ResMut<SelectedTile>>,
+    swap: Option<ResMut<TileSwap>>,
 ) {
     if !left_click.is_empty() {
         for event in left_click.iter() {
@@ -54,7 +56,21 @@ fn click_processor(
                     let y = index / BOARD_WIDTH;
                     match &selected_tile {
                         Some(selected) => {
-                            if selected.x == x && selected.y == y {
+                            if selected.x == x - 1 && selected.y == y
+                                || selected.x == x + 1 && selected.y == y
+                                || selected.x == x && selected.y - 1 == y
+                                || selected.x == x && selected.y + 1 == y
+                            {
+                                commands.insert_resource(TileSwap {
+                                    tile1: game_board.idx(x, y),
+                                    tile2: game_board.idx(selected.x, selected.y),
+                                });
+                                commands.remove_resource::<SelectedTile>();
+                                println!(
+                                    "Swapsies! {}, {} and {}, {}",
+                                    x, y, selected.x, selected.y
+                                );
+                            } else if selected.x == x && selected.y == y {
                                 commands.remove_resource::<SelectedTile>();
                                 println!("Deselected Tile: {}, {}", x, y);
                             } else {

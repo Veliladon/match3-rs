@@ -38,6 +38,11 @@ pub struct SelectedTile {
     x: usize,
     y: usize,
 }
+#[derive(Resource)]
+pub struct TileSwap {
+    tile1: usize,
+    tile2: usize,
+}
 
 fn main() {
     App::new()
