@@ -54,7 +54,7 @@ fn main() {
         .add_startup_system(create_gameboard.in_base_set(StartupSet::Startup))
         .add_startup_system(draw_background.in_base_set(StartupSet::PostStartup))
         .add_startup_system(fill_gameboard.in_base_set(StartupSet::PostStartup))
-        .add_system(cursor_grab_system)
+        // .add_system(cursor_grab_system)
         .run();
 }
 
