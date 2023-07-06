@@ -56,26 +56,27 @@ fn click_processor(
                     let y = index / BOARD_WIDTH;
                     match &selected_tile {
                         Some(selected) => {
-                            if selected.x == x - 1 && selected.y == y
-                                || selected.x == x + 1 && selected.y == y
-                                || selected.x == x && selected.y - 1 == y
-                                || selected.x == x && selected.y + 1 == y
-                            {
-                                commands.insert_resource(TileSwap {
-                                    tile1: game_board.idx(x, y),
-                                    tile2: game_board.idx(selected.x, selected.y),
-                                });
-                                commands.remove_resource::<SelectedTile>();
-                                println!(
-                                    "Swapsies! {}, {} and {}, {}",
-                                    x, y, selected.x, selected.y
-                                );
-                            } else if selected.x == x && selected.y == y {
-                                commands.remove_resource::<SelectedTile>();
-                                println!("Deselected Tile: {}, {}", x, y);
-                            } else {
-                                commands.insert_resource(SelectedTile { x, y });
-                                println!("Changed Selected Tile: {}, {}", x, y);
+                            let distance = (x.abs_diff(selected.x)) + (y.abs_diff(selected.y));
+                            match distance {
+                                0 => {
+                                    commands.remove_resource::<SelectedTile>();
+                                    println!("Deselected Tile: {}, {}", x, y);
+                                }
+                                1 => {
+                                    commands.insert_resource(TileSwap {
+                                        tile1: game_board.idx(x, y),
+                                        tile2: game_board.idx(selected.x, selected.y),
+                                    });
+                                    commands.remove_resource::<SelectedTile>();
+                                    println!(
+                                        "Swapsies! {}, {} and {}, {}",
+                                        x, y, selected.x, selected.y
+                                    );
+                                }
+                                _ => {
+                                    commands.insert_resource(SelectedTile { x, y });
+                                    println!("Changed Selected Tile: {}, {}", x, y);
+                                }
                             }
                         }
                         None => {

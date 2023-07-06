@@ -7,6 +7,9 @@ use bevy::{
 pub struct Background;
 
 #[derive(Component)]
+pub struct BlackBackground;
+
+#[derive(Component)]
 pub struct MainCamera;
 
 #[derive(Component)]

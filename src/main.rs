@@ -140,7 +140,7 @@ fn draw_background(
             )),
             ..default()
         })
-        .insert(Background);
+        .insert(BlackBackground);
 }
 
 fn fill_gameboard(
