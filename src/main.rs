@@ -54,7 +54,7 @@ fn main() {
         .add_startup_system(create_gameboard.in_base_set(StartupSet::Startup))
         .add_startup_system(draw_background.in_base_set(StartupSet::PostStartup))
         .add_startup_system(fill_gameboard.in_base_set(StartupSet::PostStartup))
-        .add_system(cursor_grab_system)
+        // .add_system(cursor_grab_system)
         .run();
 }
 
@@ -188,7 +188,7 @@ fn fill_gameboard(
     }
 }
 
-fn cursor_grab_system(
+/* fn cursor_grab_system(
     mut window_query: Query<&mut Window, With<PrimaryWindow>>,
     btn: Res<Input<MouseButton>>,
     key: Res<Input<KeyCode>>,
@@ -204,4 +204,4 @@ fn cursor_grab_system(
     if key.just_pressed(KeyCode::Escape) {
         window.cursor.grab_mode = CursorGrabMode::None;
     }
-}
+} */
