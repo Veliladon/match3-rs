@@ -44,8 +44,16 @@ pub struct GameAssets {
 }
 
 #[derive(Resource)]
-pub struct SelectedTile {
+/* pub struct SelectedTile {
     position: UVec2,
+} */
+
+pub struct SelectedTile(UVec2);
+
+impl SelectedTile {
+    fn as_uvec2(&self) -> UVec2 {
+        self.0
+    }
 }
 
 /* #[derive(Resource)]
@@ -161,17 +169,14 @@ fn fill_gameboard(
     game_assets: Res<GameAssets>,
     mut game_board: ResMut<GameBoard>,
 ) {
-    println!("Starting to assemble gameboard");
-    println!("{:?}", game_board.forward);
-
     let offset = game_board.get_offsets();
     println!("x offset: {}", offset.x);
     println!("y offset: {}", offset.y);
-    let mut grid_pos = UVec2::new(0, 0);
+    // let mut grid_pos = UVec2::new(0, 0);
 
     for y in 0..game_board.dimensions.y {
         for x in 0..game_board.dimensions.x {
-            grid_pos = (x, y).into();
+            let grid_pos = (x, y).into();
             let index = game_board.idx(grid_pos);
             let world_pos = game_board.get_world(grid_pos);
             if game_board.forward.get(index).unwrap().is_none() {
@@ -199,21 +204,3 @@ fn fill_gameboard(
         }
     }
 }
-
-/* fn cursor_grab_system(
-    mut window_query: Query<&mut Window, With<PrimaryWindow>>,
-    btn: Res<Input<MouseButton>>,
-    key: Res<Input<KeyCode>>,
-) {
-    let mut window = window_query.get_single_mut().unwrap();
-
-    if btn.just_pressed(MouseButton::Left) {
-        // if you want to use the cursor, but not let it leave the window,
-        // use `Confined` mode:
-        window.cursor.grab_mode = CursorGrabMode::Confined;
-    }
-
-    if key.just_pressed(KeyCode::Escape) {
-        window.cursor.grab_mode = CursorGrabMode::None;
-    }
-} */

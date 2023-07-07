@@ -17,9 +17,9 @@ pub fn add_sprite_to_selected_tile(
     game_board: Res<GameBoard>,
     mut highlight_query: Query<(Entity, &mut Transform), With<TileHighlight>>,
 ) {
-    match &selected_tile {
-        Some(selected) => {
-            let selected_pos = selected.position;
+    match selected_tile {
+        Some(mut selected) => {
+            let selected_pos = selected.as_mut().as_uvec2();
             let world_pos = game_board.get_world(selected_pos);
             if let Ok((_, transform)) = &mut highlight_query.get_single_mut() {
                 transform.translation.x = world_pos.x;
