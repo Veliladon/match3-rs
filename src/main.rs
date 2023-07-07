@@ -3,6 +3,7 @@ mod components;
 mod distance;
 mod effects;
 mod pointer;
+mod resources;
 mod tile;
 mod tilemove;
 
@@ -12,6 +13,7 @@ pub use crate::distance::CDistance;
 pub use crate::distance::LDistance;
 pub use crate::effects::*;
 pub use crate::pointer::*;
+pub use crate::resources::*;
 pub use crate::tile::*;
 pub use crate::tilemove::*;
 
@@ -36,25 +38,6 @@ const TILE_WIDTH: f32 = SHEET_TILE_WIDTH * SPRITE_SCALE;
 const TILE_HEIGHT: f32 = SHEET_TILE_HEIGHT * SPRITE_SCALE;
 const HALF_TILE_WIDTH: f32 = TILE_WIDTH / 2.0;
 const HALF_TILE_HEIGHT: f32 = TILE_HEIGHT / 2.0;
-
-#[derive(Resource)]
-pub struct GameAssets {
-    background: Handle<Image>,
-    tiles: Handle<TextureAtlas>,
-}
-
-#[derive(Resource)]
-/* pub struct SelectedTile {
-    position: UVec2,
-} */
-
-pub struct SelectedTile(UVec2);
-
-impl SelectedTile {
-    fn as_uvec2(&self) -> UVec2 {
-        self.0
-    }
-}
 
 /* #[derive(Resource)]
 pub struct TileSwap {
