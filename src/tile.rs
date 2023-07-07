@@ -1,5 +1,5 @@
 use bevy::prelude::Component;
-use num;
+
 use num_derive::FromPrimitive;
 use rand::{thread_rng, Rng};
 
