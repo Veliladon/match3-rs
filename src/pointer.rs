@@ -1,6 +1,7 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
 use crate::board::*;
+use crate::distance::LDistance;
 use crate::*;
 pub struct PointerPlugin;
 
@@ -51,36 +52,54 @@ fn click_processor(
         for event in left_click.iter() {
             match game_board.find_tile(event.position) {
                 Some(index) => {
-                    let x = index % BOARD_WIDTH;
-                    let y = index / BOARD_WIDTH;
+                    let grid_pos = game_board.find_grid(index);
                     match &selected_tile {
                         Some(selected) => {
-                            let distance = (x.abs_diff(selected.x)) + (y.abs_diff(selected.y));
+                            let selected_pos = selected.position;
+                            let distance = grid_pos.ldistance(selected_pos);
                             match distance {
                                 0 => {
                                     commands.remove_resource::<SelectedTile>();
-                                    println!("Deselected Tile: {}, {}", x, y);
+                                    println!("Deselected Tile: {}, {}", grid_pos.x, grid_pos.y);
                                 }
                                 1 => {
-                                    commands.insert_resource(TileSwap {
+                                    /* commands.insert_resource(TileSwap {
                                         tile1: game_board.idx(x, y),
                                         tile2: game_board.idx(selected.x, selected.y),
+                                    }); */
+                                    let tile1 = game_board.get_tile(grid_pos).unwrap();
+                                    let tile2 = game_board.get_tile(selected_pos).unwrap();
+
+                                    commands.entity(tile1).insert(TileMoving {
+                                        origin: grid_pos,
+                                        destination: selected_pos,
+
+                                        duration: Timer::from_seconds(0.0, TimerMode::Once),
                                     });
+                                    commands.entity(tile2).insert(TileMoving {
+                                        origin: selected_pos,
+                                        destination: grid_pos,
+                                        duration: Timer::from_seconds(0.0, TimerMode::Once),
+                                    });
+
                                     commands.remove_resource::<SelectedTile>();
                                     println!(
                                         "Swapsies! {}, {} and {}, {}",
-                                        x, y, selected.x, selected.y
+                                        grid_pos.x, grid_pos.y, selected_pos.x, selected_pos.y
                                     );
                                 }
                                 _ => {
-                                    commands.insert_resource(SelectedTile { x, y });
-                                    println!("Changed Selected Tile: {}, {}", x, y);
+                                    commands.insert_resource(SelectedTile { position: grid_pos });
+                                    println!(
+                                        "Changed Selected Tile: {}, {}",
+                                        grid_pos.x, grid_pos.y
+                                    );
                                 }
                             }
                         }
                         None => {
-                            commands.insert_resource(SelectedTile { x, y });
-                            println!("Selected New Tile: {}, {}", x, y);
+                            commands.insert_resource(SelectedTile { position: grid_pos });
+                            println!("Selected New Tile: {}, {}", grid_pos.x, grid_pos.y);
                         }
                     }
                 }

@@ -1,3 +1,4 @@
+use crate::*;
 use bevy::{
     prelude::Component,
     time::{Timer, TimerMode},
@@ -16,6 +17,13 @@ pub struct MainCamera;
 pub struct Tile;
 
 #[derive(Component)]
+pub struct TileMoving {
+    pub origin: UVec2,
+    pub destination: UVec2,
+    pub duration: Timer,
+}
+
+#[derive(Component)]
 pub struct TileHighlight(pub Timer);
 
 impl Default for TileHighlight {
@@ -24,8 +32,6 @@ impl Default for TileHighlight {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Component)]
-pub struct TilePosition {
-    pub x: usize,
-    pub y: usize,
-}
+#[derive(Copy, Clone, PartialEq, Component, Reflect)]
+
+pub struct TilePosition(pub UVec2);

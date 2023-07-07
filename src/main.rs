@@ -1,25 +1,35 @@
 mod board;
 mod components;
+mod distance;
 mod effects;
 mod pointer;
 mod tile;
+mod tilemove;
 
 pub use crate::board::*;
 pub use crate::components::*;
+pub use crate::distance::CDistance;
+pub use crate::distance::LDistance;
 pub use crate::effects::*;
 pub use crate::pointer::*;
 pub use crate::tile::*;
+pub use crate::tilemove::*;
 
 pub use bevy::window::CursorGrabMode;
-pub use bevy::{prelude::*, window::PrimaryWindow};
+pub use bevy::{math::prelude::*, prelude::*, window::PrimaryWindow};
+
+pub use bevy_inspector_egui::quick::WorldInspectorPlugin;
+
 pub use rand::prelude::*;
+
+pub use std::ops::Deref;
 
 const BACKGROUND: &str = "background.png";
 const TILE_SHEET: &str = "match3.png";
 const SHEET_TILE_WIDTH: f32 = 32.0;
 const SHEET_TILE_HEIGHT: f32 = 32.0;
-const BOARD_WIDTH: usize = 8;
-const BOARD_HEIGHT: usize = 8;
+const BOARD_WIDTH: u32 = 8;
+const BOARD_HEIGHT: u32 = 8;
 const SPRITE_SCALE: f32 = 2.0;
 const BORDER_SIZE: f32 = 5.0;
 const TILE_WIDTH: f32 = SHEET_TILE_WIDTH * SPRITE_SCALE;
@@ -35,21 +45,23 @@ pub struct GameAssets {
 
 #[derive(Resource)]
 pub struct SelectedTile {
-    x: usize,
-    y: usize,
+    position: UVec2,
 }
-#[derive(Resource)]
+
+/* #[derive(Resource)]
 pub struct TileSwap {
     tile1: usize,
     tile2: usize,
-}
+} */
 
 fn main() {
     App::new()
         .insert_resource(ClearColor(Color::rgb(0.04, 0.04, 0.5)))
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
+        .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(PointerPlugin)
         .add_plugin(EffectsPlugin)
+        .add_plugin(TileMovePlugin)
         .add_startup_system(setup_system.in_base_set(StartupSet::Startup))
         .add_startup_system(create_gameboard.in_base_set(StartupSet::Startup))
         .add_startup_system(draw_background.in_base_set(StartupSet::PostStartup))
@@ -88,7 +100,8 @@ fn setup_system(
 fn create_gameboard(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
     let window = window_query.get_single().unwrap();
     let window_size = Vec2::new(window.width().into(), window.height().into());
-    let gameboard = board::GameBoard::new(window_size);
+    let dimensions = UVec2::new(BOARD_HEIGHT, BOARD_WIDTH);
+    let gameboard = board::GameBoard::new(dimensions, window_size);
     commands.insert_resource(gameboard);
 }
 
@@ -151,26 +164,25 @@ fn fill_gameboard(
     println!("Starting to assemble gameboard");
     println!("{:?}", game_board.forward);
 
-    let x_offset = HALF_TILE_WIDTH + game_board.origin.x;
-    let y_offset = HALF_TILE_HEIGHT + game_board.origin.y;
-    println!("x offset: {}", x_offset);
-    println!("y offset: {}", y_offset);
+    let offset = game_board.get_offsets();
+    println!("x offset: {}", offset.x);
+    println!("y offset: {}", offset.y);
+    let mut grid_pos = UVec2::new(0, 0);
 
-    for y in 0..game_board.height {
-        for x in 0..game_board.width {
-            let index = game_board.idx(x, y);
+    for y in 0..game_board.dimensions.y {
+        for x in 0..game_board.dimensions.x {
+            grid_pos = (x, y).into();
+            let index = game_board.idx(grid_pos);
+            let world_pos = game_board.get_world(grid_pos);
             if game_board.forward.get(index).unwrap().is_none() {
                 let tile_desc = tile::TileDesc::new();
+
                 //println!("Found empty tile, Generating {:?}", tile_desc);
                 let tile_entity = commands
                     .spawn(SpriteSheetBundle {
                         texture_atlas: game_assets.tiles.clone(),
                         transform: Transform {
-                            translation: Vec3::new(
-                                x as f32 * TILE_WIDTH + x_offset,
-                                y as f32 * TILE_HEIGHT + y_offset,
-                                2.0,
-                            ),
+                            translation: Vec3::new(world_pos.x, world_pos.y, 2.0),
                             scale: Vec3::new(SPRITE_SCALE, SPRITE_SCALE, 1.0),
                             ..Default::default()
                         },
@@ -179,7 +191,7 @@ fn fill_gameboard(
                     })
                     .insert(Tile)
                     .insert(tile_desc)
-                    .insert(TilePosition { x: x, y: y })
+                    .insert(TilePosition(grid_pos))
                     .id();
                 game_board.backward.insert(tile_entity, index);
                 game_board.forward[index] = Some(tile_entity);

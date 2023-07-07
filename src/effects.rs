@@ -13,18 +13,17 @@ impl Plugin for EffectsPlugin {
 
 pub fn add_sprite_to_selected_tile(
     mut commands: Commands,
-    selected_tile: Option<Res<SelectedTile>>,
+    selected_tile: Option<ResMut<SelectedTile>>,
     game_board: Res<GameBoard>,
     mut highlight_query: Query<(Entity, &mut Transform), With<TileHighlight>>,
 ) {
-    let x_offset = HALF_TILE_WIDTH + game_board.origin.x;
-    let y_offset = HALF_TILE_HEIGHT + game_board.origin.y;
-
     match &selected_tile {
         Some(selected) => {
+            let selected_pos = selected.position;
+            let world_pos = game_board.get_world(selected_pos);
             if let Ok((_, transform)) = &mut highlight_query.get_single_mut() {
-                transform.translation.x = selected.x as f32 * TILE_WIDTH + x_offset;
-                transform.translation.y = -(selected.y as f32 * TILE_HEIGHT + y_offset);
+                transform.translation.x = world_pos.x;
+                transform.translation.y = world_pos.y;
             } else {
                 commands
                     .spawn(SpriteBundle {
@@ -34,17 +33,14 @@ pub fn add_sprite_to_selected_tile(
                             ..default()
                         },
                         transform: Transform::from_translation(Vec3::new(
-                            selected.x as f32 * TILE_WIDTH + x_offset,
-                            -(selected.y as f32 * TILE_HEIGHT + y_offset),
+                            world_pos.x,
+                            world_pos.y,
                             3.0,
                         )),
                         ..default()
                     })
                     .insert(TileHighlight::default())
-                    .insert(TilePosition {
-                        x: selected.x,
-                        y: selected.y,
-                    });
+                    .insert(TilePosition(selected_pos));
             }
         }
         None => {
