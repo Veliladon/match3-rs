@@ -60,7 +60,7 @@ impl GameBoard {
             [grid_pos.y as usize * self.dimensions.x as usize + grid_pos.x as usize];
     }
 
-    pub fn get_world(&self, grid_pos: UVec2) -> Vec2 {
+    pub fn get_world_pos(&self, grid_pos: UVec2) -> Vec2 {
         let offsets = self.get_offsets();
         Vec2::new(
             grid_pos.x as f32 * TILE_WIDTH + offsets.x,

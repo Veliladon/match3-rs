@@ -39,12 +39,6 @@ const TILE_HEIGHT: f32 = SHEET_TILE_HEIGHT * SPRITE_SCALE;
 const HALF_TILE_WIDTH: f32 = TILE_WIDTH / 2.0;
 const HALF_TILE_HEIGHT: f32 = TILE_HEIGHT / 2.0;
 
-/* #[derive(Resource)]
-pub struct TileSwap {
-    tile1: usize,
-    tile2: usize,
-} */
-
 fn main() {
     App::new()
         .insert_resource(ClearColor(Color::rgb(0.04, 0.04, 0.5)))
@@ -161,7 +155,7 @@ fn fill_gameboard(
         for x in 0..game_board.dimensions.x {
             let grid_pos = (x, y).into();
             let index = game_board.idx(grid_pos);
-            let world_pos = game_board.get_world(grid_pos);
+            let world_pos = game_board.get_world_pos(grid_pos);
             if game_board.forward.get(index).unwrap().is_none() {
                 let tile_desc = tile::TileDesc::new();
 
