@@ -1,4 +1,3 @@
-use crate::*;
 use bevy::prelude::*;
 
 #[derive(Resource)]
@@ -9,9 +8,9 @@ pub struct GameAssets {
 
 #[derive(Resource)]
 
-pub struct SelectedTile(UVec2);
+pub struct SelectedTile(pub UVec2);
 
-pub impl SelectedTile {
+impl SelectedTile {
     pub fn as_uvec2(&self) -> UVec2 {
         self.0
     }
