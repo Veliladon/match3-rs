@@ -100,7 +100,6 @@ impl GameBoard {
     }
 
     pub fn resolve_horizontal_matches(&self, 
-        commands: Commands, 
         tile_query: Query<(Entity, &TileDesc, &TilePosition)>, 
         to_be_deleted: &mut HashSet<Entity>)  
         {
@@ -128,7 +127,7 @@ impl GameBoard {
                         }
                         match_counter = 1;
 
-                        if (x >= self.dimensions.x - 2){
+                        if x >= self.dimensions.x - 2{
                             break;
                         }
                     
@@ -208,10 +207,10 @@ pub fn fill_gameboard(
     }
 
 pub fn calculate_matches(
-    mut commands: Commands,
+    
     tile_query: Query<(Entity, &TileDesc, &TilePosition)>,
-    mut game_board: ResMut<GameBoard>,
+    game_board: Res<GameBoard>,
 ){
     let mut to_be_deleted: HashSet<Entity> = HashSet::new();
-    game_board.resolve_horizontal_matches(commands, tile_query, &mut to_be_deleted);
+    game_board.resolve_horizontal_matches(tile_query, &mut to_be_deleted);
 }
