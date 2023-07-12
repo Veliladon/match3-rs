@@ -110,9 +110,7 @@ impl GameBoard {
                 let mut color_to_match = tile_query.get_component::<TileDesc>(self.forward[self.idx((0, y).into())].unwrap()).unwrap().color;
                 
                 for x in 1..self.dimensions.x {
-
                     let next_entity_color = tile_query.get_component::<TileDesc>(self.forward[self.idx((x, y).into())].unwrap()).unwrap().color;
-                    
                     if next_entity_color == color_to_match {
                         match_counter += 1;
                     } else {
@@ -130,10 +128,14 @@ impl GameBoard {
                         if x >= self.dimensions.x - 2{
                             break;
                         }
-                    
                     }
-
-                    
+                }
+                if match_counter >= MIN_MATCH_LENGTH{
+                    let first_match = self.dimensions.x - match_counter;
+                    for backtrace in first_match..self.dimensions.x{
+                        to_be_deleted.insert(self.forward[self.idx((backtrace, y).into())].unwrap());
+                        println!("Pushed tile to be deleted at {}, {}", backtrace, y);
+                    }
                 }
             }   
            
@@ -175,7 +177,16 @@ impl GameBoard {
     
                         
                     }
-                }   
+                    if match_counter >= MIN_MATCH_LENGTH{
+                        let first_match = self.dimensions.y - match_counter;
+                        for backtrace in first_match..self.dimensions.y{
+                            to_be_deleted.insert(self.forward[self.idx((x, backtrace).into())].unwrap());
+                            println!("Pushed tile to be deleted at {}, {}", x, backtrace);
+                        }
+                    }   
+                }
+                
+                
                
             }
 
