@@ -100,7 +100,7 @@ impl GameBoard {
     }
 
     pub fn resolve_horizontal_matches(&self, 
-        tile_query: Query<(Entity, &TileDesc, &TilePosition)>, 
+        tile_query: &Query<(Entity, &TileDesc, &TilePosition)>, 
         to_be_deleted: &mut HashSet<Entity>)  
         {
             
@@ -138,6 +138,46 @@ impl GameBoard {
             }   
            
         }
+
+        pub fn resolve_vertical_matches(&self, 
+            tile_query: &Query<(Entity, &TileDesc, &TilePosition)>, 
+            to_be_deleted: &mut HashSet<Entity>)  
+            {
+                
+    
+                for x in 0..self.dimensions.x {
+                    let mut match_counter: u32 = 1;
+                    let mut color_to_match = tile_query.get_component::<TileDesc>(self.forward[self.idx((x, 0).into())].unwrap()).unwrap().color;
+                    
+                    for y in 1..self.dimensions.y {
+    
+                        let next_entity_color = tile_query.get_component::<TileDesc>(self.forward[self.idx((x, y).into())].unwrap()).unwrap().color;
+                        
+                        if next_entity_color == color_to_match {
+                            match_counter += 1;
+                        } else {
+                            color_to_match = next_entity_color;
+                            
+                            if match_counter >= MIN_MATCH_LENGTH{
+                                let first_match = y - match_counter;
+                                for backtrace in first_match..y{
+                                    to_be_deleted.insert(self.forward[self.idx((x, backtrace).into())].unwrap());
+                                    println!("Pushed tile to be deleted at {}, {}", x, backtrace);
+                                }
+                            }
+                            match_counter = 1;
+    
+                            if y >= self.dimensions.y - 2{
+                                break;
+                            }
+                        
+                        }
+    
+                        
+                    }
+                }   
+               
+            }
 
 }
 
@@ -212,5 +252,6 @@ pub fn calculate_matches(
     game_board: Res<GameBoard>,
 ){
     let mut to_be_deleted: HashSet<Entity> = HashSet::new();
-    game_board.resolve_horizontal_matches(tile_query, &mut to_be_deleted);
+    game_board.resolve_horizontal_matches(&tile_query, &mut to_be_deleted);
+    game_board.resolve_vertical_matches(&tile_query, &mut to_be_deleted);
 }
