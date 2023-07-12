@@ -27,15 +27,15 @@ impl GameBoard {
         let origin = find_origin(windowsize);
 
         Self {
-            dimensions: dimensions,
+            dimensions,
             forward: vec![None; (dimensions.x * dimensions.y) as usize],
             backward: HashMap::new(),
-            origin: origin,
+            origin,
         }
     }
 
     pub fn idx(&self, grid_pos: UVec2) -> usize {
-        return grid_pos.y as usize * self.dimensions.x as usize + grid_pos.x as usize;
+        grid_pos.y as usize * self.dimensions.x as usize + grid_pos.x as usize
     }
 
 
@@ -77,8 +77,8 @@ impl GameBoard {
     }
 
     pub fn get_tile(&self, grid_pos: UVec2) -> Option<Entity> {
-        return self.forward
-            [grid_pos.y as usize * self.dimensions.x as usize + grid_pos.x as usize];
+        self.forward
+            [grid_pos.y as usize * self.dimensions.x as usize + grid_pos.x as usize]
     }
 
     pub fn get_world_pos(&self, grid_pos: UVec2) -> Vec2 {

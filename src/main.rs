@@ -81,7 +81,13 @@ fn setup_system(
     commands.insert_resource(game_assets);
 }
 
-
+fn create_gameboard(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
+    let window = window_query.get_single().unwrap();
+    let window_size = Vec2::new(window.width(), window.height());
+    let dimensions = UVec2::new(BOARD_HEIGHT, BOARD_WIDTH);
+    let gameboard = board::GameBoard::new(dimensions, window_size);
+    commands.insert_resource(gameboard);
+}
 
 fn draw_background(
     mut commands: Commands,
