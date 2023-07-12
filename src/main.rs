@@ -38,6 +38,7 @@ const TILE_WIDTH: f32 = SHEET_TILE_WIDTH * SPRITE_SCALE;
 const TILE_HEIGHT: f32 = SHEET_TILE_HEIGHT * SPRITE_SCALE;
 const HALF_TILE_WIDTH: f32 = TILE_WIDTH / 2.0;
 const HALF_TILE_HEIGHT: f32 = TILE_HEIGHT / 2.0;
+const MIN_MATCH_LENGTH: u32 = 3;
 
 fn main() {
     App::new()
@@ -47,11 +48,9 @@ fn main() {
         .add_plugin(PointerPlugin)
         .add_plugin(EffectsPlugin)
         .add_plugin(TileMovePlugin)
+        .add_plugin(GameBoardPlugin)
         .add_startup_system(setup_system.in_base_set(StartupSet::Startup))
-        .add_startup_system(create_gameboard.in_base_set(StartupSet::Startup))
         .add_startup_system(draw_background.in_base_set(StartupSet::PostStartup))
-        .add_startup_system(fill_gameboard.in_base_set(StartupSet::PostStartup))
-        // .add_system(cursor_grab_system)
         .run();
 }
 
@@ -82,13 +81,7 @@ fn setup_system(
     commands.insert_resource(game_assets);
 }
 
-fn create_gameboard(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
-    let window = window_query.get_single().unwrap();
-    let window_size = Vec2::new(window.width().into(), window.height().into());
-    let dimensions = UVec2::new(BOARD_HEIGHT, BOARD_WIDTH);
-    let gameboard = board::GameBoard::new(dimensions, window_size);
-    commands.insert_resource(gameboard);
-}
+
 
 fn draw_background(
     mut commands: Commands,
@@ -141,43 +134,4 @@ fn draw_background(
         .insert(BlackBackground);
 }
 
-fn fill_gameboard(
-    mut commands: Commands,
-    game_assets: Res<GameAssets>,
-    mut game_board: ResMut<GameBoard>,
-) {
-    let offset = game_board.get_offsets();
-    println!("x offset: {}", offset.x);
-    println!("y offset: {}", offset.y);
-    // let mut grid_pos = UVec2::new(0, 0);
 
-    for y in 0..game_board.dimensions.y {
-        for x in 0..game_board.dimensions.x {
-            let grid_pos = (x, y).into();
-            let index = game_board.idx(grid_pos);
-            let world_pos = game_board.get_world_pos(grid_pos);
-            if game_board.forward.get(index).unwrap().is_none() {
-                let tile_desc = tile::TileDesc::new();
-
-                //println!("Found empty tile, Generating {:?}", tile_desc);
-                let tile_entity = commands
-                    .spawn(SpriteSheetBundle {
-                        texture_atlas: game_assets.tiles.clone(),
-                        transform: Transform {
-                            translation: Vec3::new(world_pos.x, world_pos.y, 2.0),
-                            scale: Vec3::new(SPRITE_SCALE, SPRITE_SCALE, 1.0),
-                            ..Default::default()
-                        },
-                        sprite: TextureAtlasSprite::new(tile_desc.get_index()),
-                        ..Default::default()
-                    })
-                    .insert(Tile)
-                    .insert(tile_desc)
-                    .insert(TilePosition(grid_pos))
-                    .id();
-                game_board.backward.insert(tile_entity, index);
-                game_board.forward[index] = Some(tile_entity);
-            }
-        }
-    }
-}

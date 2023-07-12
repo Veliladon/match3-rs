@@ -55,9 +55,9 @@ fn click_processor(
         }
 
         for event in left_click.iter() {
-            match game_board.find_tile(event.position) {
-                Some(index) => {
-                    let grid_pos = game_board.find_grid(index);
+            match game_board.find_grid_from_world(event.position) {
+                Some(grid_pos) => {
+                    //let grid_pos = game_board.find_grid_from_index(index);
                     match selected_pos {
                         Some(selected_pos) => {
                             let distance = grid_pos.ldistance(selected_pos);
