@@ -120,7 +120,7 @@ impl GameBoard {
                         
                         if match_counter >= MIN_MATCH_LENGTH{
                             let first_match = x - match_counter;
-                            for backtrace in first_match..x-1{
+                            for backtrace in first_match..x{
                                 to_be_deleted.insert(self.forward[self.idx((backtrace, y).into())].unwrap());
                                 println!("Pushed tile to be deleted at {}, {}", backtrace, y);
                             }
