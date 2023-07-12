@@ -81,8 +81,6 @@ fn setup_system(
     commands.insert_resource(game_assets);
 }
 
-
-
 fn draw_background(
     mut commands: Commands,
     game_assets: Res<GameAssets>,
@@ -133,5 +131,3 @@ fn draw_background(
         })
         .insert(BlackBackground);
 }
-
-
