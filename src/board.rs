@@ -68,9 +68,9 @@ impl GameBoard {
 
     pub fn find_grid_from_world(&self, position: Vec2) -> Option<UVec2> {
         if let Some(index) = self.find_index_from_world(position) {
-            return Some(self.find_grid_from_index(index));
+            Some(self.find_grid_from_index(index))
         } else {
-            return None;
+            None
         }
     }
 
@@ -210,7 +210,7 @@ pub fn find_origin(windowsize: Vec2) -> Vec2 {
 
 pub fn create_gameboard(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
     let window = window_query.get_single().unwrap();
-    let window_size = Vec2::new(window.width().into(), window.height().into());
+    let window_size = Vec2::new(window.width(), window.height());
     let dimensions = UVec2::new(BOARD_HEIGHT, BOARD_WIDTH);
     let gameboard = board::GameBoard::new(dimensions, window_size);
     commands.insert_resource(gameboard);
