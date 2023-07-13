@@ -17,7 +17,7 @@ impl Plugin for GameBoardPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(create_gameboard.in_base_set(StartupSet::Startup))
             .add_startup_system(fill_gameboard.in_base_set(StartupSet::PostStartup))
-            .add_system(calculate_matches);
+            .add_system(match_remove_refill);
     }
 }
 
@@ -257,7 +257,7 @@ pub fn fill_gameboard(
     }
 }
 
-pub fn calculate_matches(
+pub fn match_remove_refill(
     tile_query: Query<(Entity, &TileDesc, &TilePosition)>,
     game_board: Res<GameBoard>,
 ) {
