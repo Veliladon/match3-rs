@@ -190,6 +190,14 @@ impl GameBoard {
             }
         }
     }
+
+    pub fn remove_matches(&mut self, mut commands: Commands, to_be_deleted: &HashSet<Entity>) {
+        for entity in to_be_deleted {
+            let tile_index = self.backward.remove(entity).unwrap();
+            self.forward[tile_index] = None;
+            commands.entity(*entity).despawn();
+        }
+    }
 }
 
 pub fn find_origin(windowsize: Vec2) -> Vec2 {
@@ -258,10 +266,12 @@ pub fn fill_gameboard(
 }
 
 pub fn match_remove_refill(
+    mut commands: Commands,
     tile_query: Query<(Entity, &TileDesc, &TilePosition)>,
-    game_board: Res<GameBoard>,
+    mut game_board: ResMut<GameBoard>,
 ) {
     let mut to_be_deleted: HashSet<Entity> = HashSet::new();
     game_board.resolve_horizontal_matches(&tile_query, &mut to_be_deleted);
     game_board.resolve_vertical_matches(&tile_query, &mut to_be_deleted);
+    game_board.remove_matches(commands, &to_be_deleted);
 }

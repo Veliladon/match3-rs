@@ -49,15 +49,13 @@ fn click_processor(
     selected_tile: Option<ResMut<SelectedTile>>,
 ) {
     if !left_click.is_empty() {
-        let mut selected_pos: Option<UVec2> = None;
-        if selected_tile.is_some() {
-            selected_pos = Some(selected_tile.unwrap().as_mut().as_uvec2());
-        }
+        let selected_pos = selected_tile.map(|x| x.as_uvec2());
 
         for event in left_click.iter() {
             match game_board.find_grid_from_world(event.position) {
                 Some(grid_pos) => {
                     //let grid_pos = game_board.find_grid_from_index(index);
+
                     match selected_pos {
                         Some(selected_pos) => {
                             let distance = grid_pos.ldistance(selected_pos);

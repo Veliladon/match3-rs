@@ -6,7 +6,7 @@ pub struct GameAssets {
     pub tiles: Handle<TextureAtlas>,
 }
 
-#[derive(Resource)]
+#[derive(Resource, Copy, Clone, Debug)]
 
 pub struct SelectedTile(pub UVec2);
 
