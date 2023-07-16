@@ -45,7 +45,7 @@ fn cursor_system(
 fn click_processor(
     mut commands: Commands,
     mut left_click: EventReader<LeftClickEvent>,
-    game_board: Res<GameBoard>,
+    mut game_board: ResMut<GameBoard>,
     selected_tile: Option<ResMut<SelectedTile>>,
 ) {
     if !left_click.is_empty() {
@@ -69,8 +69,8 @@ fn click_processor(
                                         tile1: game_board.idx(x, y),
                                         tile2: game_board.idx(selected.x, selected.y),
                                     }); */
-                                    let tile1 = game_board.get_tile(grid_pos).unwrap();
-                                    let tile2 = game_board.get_tile(selected_pos).unwrap();
+                                    let tile1 = game_board.get_entity(grid_pos).unwrap();
+                                    let tile2 = game_board.get_entity(selected_pos).unwrap();
 
                                     commands.entity(tile1).insert(TileMoving {
                                         origin: grid_pos,

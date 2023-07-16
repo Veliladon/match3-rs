@@ -5,11 +5,11 @@ pub struct TileMovePlugin;
 
 impl Plugin for TileMovePlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(tile_move_system);
+        // app.add_system(tile_move_system);
     }
 }
 
-pub fn tile_move_system(
+/* pub fn tile_move_system(
     mut commands: Commands,
     mut move_query: Query<(Entity, &mut Transform, &mut TileMoving), With<TileMoving>>,
     time: Res<Time>,
@@ -34,4 +34,4 @@ pub fn tile_move_system(
             // transform.translation.y
         }
     }
-}
+} */

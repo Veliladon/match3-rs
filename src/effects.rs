@@ -19,11 +19,13 @@ pub fn add_sprite_to_selected_tile(
 ) {
     match selected_tile {
         Some(mut selected) => {
+            let board_entity = game_board.entity;
             let selected_pos = selected.as_mut().as_uvec2();
-            let world_pos = game_board.get_world_pos(selected_pos);
+            let board_pos = game_board.get_board_pos(selected_pos);
+
             if let Ok((_, transform)) = &mut highlight_query.get_single_mut() {
-                transform.translation.x = world_pos.x;
-                transform.translation.y = world_pos.y;
+                transform.translation.x = board_pos.x;
+                transform.translation.y = board_pos.y;
             } else {
                 commands
                     .spawn(SpriteBundle {
@@ -33,14 +35,15 @@ pub fn add_sprite_to_selected_tile(
                             ..default()
                         },
                         transform: Transform::from_translation(Vec3::new(
-                            world_pos.x,
-                            world_pos.y,
+                            board_pos.x,
+                            board_pos.y,
                             3.0,
                         )),
                         ..default()
                     })
                     .insert(TileHighlight::default())
-                    .insert(TilePosition(selected_pos));
+                    .insert(TilePosition(selected_pos))
+                    .set_parent(board_entity);
             }
         }
         None => {
