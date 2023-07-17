@@ -239,7 +239,7 @@ impl GameBoard {
     pub fn shuffle_tiles_down(&mut self, mut commands: &mut Commands) -> Vec<u32> {
         let mut column_spaces: Vec<u32> = Vec::new();
         let mut space_in_row: u32 = 0;
-        let mut final_y = 0;
+        //let mut final_y = 0;
         for x in 0..BOARD_WIDTH {
             space_in_row = 0;
             for y in 0..BOARD_HEIGHT {
@@ -259,14 +259,17 @@ impl GameBoard {
                                 duration: Timer::from_seconds(0.0, TimerMode::Once),
                             });
                             println!("Moved tile from {}, {} to {}, {}", x, row, x, y);
-                            final_y = y;
-                            space_in_row = (BOARD_HEIGHT - 1) - final_y;
+                            //final_y = y;
+                            //space_in_row = (BOARD_HEIGHT - 1) - final_y;
                             break;
                         }
-                        if self.forward[row_index].is_none() {
-                            space_in_row += 1;
-                        }
                     }
+                }
+            }
+            for y in 0..BOARD_HEIGHT {
+                let index = self.idx((x, y).into());
+                if self.forward[index].is_none() {
+                    space_in_row += 1;
                 }
             }
             column_spaces.push(space_in_row);
