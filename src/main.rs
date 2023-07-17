@@ -111,23 +111,4 @@ fn draw_background(
                 .insert(Background);
         }
     }
-
-    /*commands
-    .spawn(SpriteBundle {
-        sprite: Sprite {
-            color: Color::rgb(0.0, 0.0, 0.0),
-            custom_size: Some(Vec2::new(
-                TILE_WIDTH * BOARD_WIDTH as f32 + (2.0 * BORDER_SIZE),
-                TILE_HEIGHT * BOARD_HEIGHT as f32 + (2.0 * BORDER_SIZE),
-            )),
-            ..default()
-        },
-        transform: Transform::from_translation(Vec3::new(
-            (BOARD_WIDTH / 2) as f32 * TILE_WIDTH + 24.0,
-            0.0,
-            1.5,
-        )),
-        ..default()
-    })
-    .insert(BlackBackground); */
 }

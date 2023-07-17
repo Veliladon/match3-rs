@@ -3,7 +3,7 @@ use bevy::math::prelude::*;
 use bevy::utils::hashbrown::HashMap;
 use bevy::utils::HashSet;
 
-const SQUARE_COORD: [(i8, i8); 8] = [
+/* const SQUARE_COORD: [(i8, i8); 8] = [
     // Bottom left
     (-1, -1),
     // Bottom
@@ -20,7 +20,7 @@ const SQUARE_COORD: [(i8, i8); 8] = [
     (0, 1),
     // Top right
     (1, 1),
-];
+]; */
 
 #[derive(Resource)]
 pub struct GameBoard {
@@ -228,8 +228,8 @@ impl GameBoard {
             self.forward[index] = None;
             let entity = self.backward.remove(&index).unwrap();
 
-            //self.forward[grid_pos] = None;
             commands.entity(entity).despawn();
+            #[cfg(feature = "debug")]
             println!("Depawned: {:?}", entity);
         }
     }
@@ -256,6 +256,7 @@ impl GameBoard {
                                 destination: (x, y).into(),
                                 duration: Timer::from_seconds(0.0, TimerMode::Once),
                             });
+                            #[cfg(feature = "debug")]
                             println!("Moved tile from {}, {} to {}, {}", x, row, x, y);
                             //final_y = y;
                             //space_in_row = (BOARD_HEIGHT - 1) - final_y;
@@ -271,11 +272,12 @@ impl GameBoard {
                 }
             }
             column_spaces.push(space_in_row);
+            #[cfg(feature = "debug")]
             if space_in_row > 0 {
                 println!("Row {} found {} spaces", x, space_in_row);
             }
         }
-        // println!("{:?}", &column_spaces);
+
         column_spaces
     }
 
@@ -314,6 +316,7 @@ impl GameBoard {
                             .insert(TilePosition((x as u32, BOARD_HEIGHT - y).into()))
                             .id();
                         self.backward.insert(index, tile_entity);
+                        #[cfg(feature = "debug")]
                         println!("Spawned a tile at: {}, {}", x, BOARD_HEIGHT - y);
                     });
                 }

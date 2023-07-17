@@ -35,6 +35,7 @@ fn cursor_system(
             left_click.send(LeftClickEvent {
                 position: (world_position.x, world_position.y).into(),
             });
+            #[cfg(feature = "debug")]
             println!(
                 "Clicked! World coords: {}/{}",
                 world_position.x, world_position.y
@@ -53,78 +54,70 @@ fn click_processor(
 
         for event in left_click.iter() {
             match game_board.find_grid_from_world(event.position) {
-                Some(grid_pos) => {
-                    //let grid_pos = game_board.find_grid_from_index(index);
+                Some(grid_pos) => match selected_pos {
+                    Some(selected_pos) => {
+                        let distance = grid_pos.ldistance(selected_pos);
+                        match distance {
+                            0 => {
+                                commands.remove_resource::<SelectedTile>();
+                                #[cfg(feature = "debug")]
+                                println!("Deselected Tile: {}, {}", grid_pos.x, grid_pos.y);
+                            }
+                            1 => {
+                                let tile1_index = game_board.idx(grid_pos);
+                                let tile2_index = game_board.idx(selected_pos);
 
-                    match selected_pos {
-                        Some(selected_pos) => {
-                            let distance = grid_pos.ldistance(selected_pos);
-                            match distance {
-                                0 => {
-                                    commands.remove_resource::<SelectedTile>();
-                                    println!("Deselected Tile: {}, {}", grid_pos.x, grid_pos.y);
-                                }
-                                1 => {
-                                    /* commands.insert_resource(TileSwap {
-                                        tile1: game_board.idx(x, y),
-                                        tile2: game_board.idx(selected.x, selected.y),
-                                    }); */
-                                    let tile1_index = game_board.idx(grid_pos);
-                                    let tile2_index = game_board.idx(selected_pos);
+                                let tile1 = game_board.forward.get(tile1_index).copied().unwrap();
+                                let tile2 = game_board.forward.get(tile2_index).copied().unwrap();
 
-                                    let tile1 =
-                                        game_board.forward.get(tile1_index).copied().unwrap();
-                                    let tile2 =
-                                        game_board.forward.get(tile2_index).copied().unwrap();
+                                let tile1_entity = game_board.get_entity(grid_pos).unwrap();
+                                let tile2_entity = game_board.get_entity(selected_pos).unwrap();
 
-                                    let tile1_entity = game_board.get_entity(grid_pos).unwrap();
-                                    let tile2_entity = game_board.get_entity(selected_pos).unwrap();
+                                game_board.forward[tile2_index] = tile1;
+                                game_board.forward[tile1_index] = tile2;
 
-                                    game_board.forward[tile2_index] = tile1;
-                                    game_board.forward[tile1_index] = tile2;
+                                game_board.backward.insert(tile2_index, tile1_entity);
+                                game_board.backward.insert(tile1_index, tile2_entity);
 
-                                    game_board.backward.insert(tile2_index, tile1_entity);
-                                    game_board.backward.insert(tile1_index, tile2_entity);
+                                commands.entity(tile1_entity).insert(TileMoving {
+                                    origin: grid_pos,
+                                    destination: selected_pos,
 
-                                    commands.entity(tile1_entity).insert(TileMoving {
-                                        origin: grid_pos,
-                                        destination: selected_pos,
+                                    duration: Timer::from_seconds(0.0, TimerMode::Once),
+                                });
+                                commands.entity(tile2_entity).insert(TileMoving {
+                                    origin: selected_pos,
+                                    destination: grid_pos,
+                                    duration: Timer::from_seconds(0.0, TimerMode::Once),
+                                });
 
-                                        duration: Timer::from_seconds(0.0, TimerMode::Once),
-                                    });
-                                    commands.entity(tile2_entity).insert(TileMoving {
-                                        origin: selected_pos,
-                                        destination: grid_pos,
-                                        duration: Timer::from_seconds(0.0, TimerMode::Once),
-                                    });
-
-                                    commands.remove_resource::<SelectedTile>();
-                                    println!(
-                                        "Swapsies! {}, {} and {}, {}",
-                                        grid_pos.x, grid_pos.y, selected_pos.x, selected_pos.y
-                                    );
-                                }
-                                _ => {
-                                    commands.insert_resource(SelectedTile(grid_pos));
-                                    println!(
-                                        "Changed Selected Tile: {}, {}",
-                                        grid_pos.x, grid_pos.y
-                                    );
-                                }
+                                commands.remove_resource::<SelectedTile>();
+                                #[cfg(feature = "debug")]
+                                println!(
+                                    "Swapsies! {}, {} and {}, {}",
+                                    grid_pos.x, grid_pos.y, selected_pos.x, selected_pos.y
+                                );
+                            }
+                            _ => {
+                                commands.insert_resource(SelectedTile(grid_pos));
+                                #[cfg(feature = "debug")]
+                                println!("Changed Selected Tile: {}, {}", grid_pos.x, grid_pos.y);
                             }
                         }
-                        None => {
-                            commands.insert_resource(SelectedTile(grid_pos));
-                            println!("Selected New Tile: {}, {}", grid_pos.x, grid_pos.y);
-                        }
                     }
-                }
+                    None => {
+                        commands.insert_resource(SelectedTile(grid_pos));
+                        #[cfg(feature = "debug")]
+                        println!("Selected New Tile: {}, {}", grid_pos.x, grid_pos.y);
+                    }
+                },
                 None => {
                     commands.remove_resource::<SelectedTile>();
+                    #[cfg(feature = "debug")]
                     println!("Empty Tile Selected, Deselecting!");
                 }
             }
-
+            #[cfg(feature = "debug")]
             println!(
                 "Someone clicked! World coords: {}/{}",
                 event.position.x, event.position.y

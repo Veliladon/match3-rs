@@ -71,6 +71,5 @@ pub fn animated_selected_tile(
             new_alpha = reverse(new_alpha);
         }
         sprite.color.set_a(new_alpha);
-        //println!("Duration: {}, New Alpha: {}", duration, new_alpha);
     }
 }

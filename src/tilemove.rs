@@ -17,8 +17,6 @@ pub fn tile_move_system(
     for (entity, mut transform, mut tile_move) in move_query.iter_mut() {
         tile_move.duration.tick(time.delta());
         if tile_move.duration.just_finished() {
-            //let index = game_board.idx(tile_move.destination);
-
             transform.translation.x = tile_move.destination.x as f32 * TILE_WIDTH + HALF_TILE_WIDTH;
             transform.translation.y =
                 tile_move.destination.y as f32 * TILE_HEIGHT + HALF_TILE_HEIGHT;
