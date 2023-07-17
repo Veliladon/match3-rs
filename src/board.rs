@@ -1,6 +1,7 @@
+use std::cmp::max;
+
 use crate::*;
 use bevy::math::prelude::*;
-use bevy::render::view::visibility;
 use bevy::utils::hashbrown::HashMap;
 use bevy::utils::HashSet;
 
@@ -37,8 +38,8 @@ pub struct GameBoardPlugin;
 impl Plugin for GameBoardPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(create_gameboard.in_base_set(StartupSet::Startup))
-            .add_startup_system(fill_gameboard.in_base_set(StartupSet::PostStartup));
-        //.add_system(match_remove_refill);
+            .add_startup_system(fill_gameboard.in_base_set(StartupSet::PostStartup))
+            .add_system(match_remove_refill.in_base_set(CoreSet::PostUpdate));
     }
 }
 
@@ -48,7 +49,7 @@ impl GameBoard {
 
         Self {
             dimensions,
-            forward: vec![Some(tile::TileDesc::new()); (dimensions.x * dimensions.y) as usize],
+            forward: vec![None; (dimensions.x * dimensions.y) as usize],
             backward: HashMap::new(),
             origin,
             entity: Entity::PLACEHOLDER,
@@ -141,15 +142,7 @@ impl GameBoard {
         Vec2::new(x_offset, y_offset)
     }
 
-    pub fn calculate_matches(&self) -> Vec<Entity> {
-        todo!();
-    }
-
-    pub fn resolve_horizontal_matches(
-        &mut self,
-        tile_query: &Query<(Entity, &TileDesc, &TilePosition)>,
-        to_be_deleted: &mut HashSet<Entity>,
-    ) {
+    pub fn resolve_horizontal_matches(&mut self, to_be_deleted: &mut HashSet<usize>) {
         for y in 0..self.dimensions.y {
             let mut match_counter: u32 = 1;
             let mut color_to_match = self.forward[self.idx((0, y).into())].unwrap().color;
@@ -164,13 +157,9 @@ impl GameBoard {
                     if match_counter >= MIN_MATCH_LENGTH {
                         let first_match = x - match_counter;
                         for backtrace in first_match..x {
-                            let grid_pos = self.idx((backtrace, y).into());
-                            self.forward[grid_pos] = None;
-                            to_be_deleted.insert(
-                                self.backward
-                                    .remove(&self.idx((backtrace, y).into()))
-                                    .unwrap(),
-                            );
+                            let grid_index = self.idx((backtrace, y).into());
+                            to_be_deleted.insert(grid_index);
+
                             #[cfg(feature = "debug")]
                             println!("Pushed tile to be deleted at {}, {}", backtrace, y);
                         }
@@ -185,13 +174,9 @@ impl GameBoard {
             if match_counter >= MIN_MATCH_LENGTH {
                 let first_match = self.dimensions.x - match_counter;
                 for backtrace in first_match..self.dimensions.x {
-                    let grid_pos = self.idx((backtrace, y).into());
-                    self.forward[grid_pos] = None;
-                    to_be_deleted.insert(
-                        self.backward
-                            .remove(&self.idx((backtrace, y).into()))
-                            .unwrap(),
-                    );
+                    let grid_index = self.idx((backtrace, y).into());
+                    to_be_deleted.insert(grid_index);
+
                     #[cfg(feature = "debug")]
                     println!("Pushed tile to be deleted at {}, {}", backtrace, y);
                 }
@@ -199,11 +184,7 @@ impl GameBoard {
         }
     }
 
-    pub fn resolve_vertical_matches(
-        &mut self,
-        tile_query: &Query<(Entity, &TileDesc, &TilePosition)>,
-        to_be_deleted: &mut HashSet<Entity>,
-    ) {
+    pub fn resolve_vertical_matches(&mut self, to_be_deleted: &mut HashSet<usize>) {
         for x in 0..self.dimensions.x {
             let mut match_counter: u32 = 1;
             let mut color_to_match = self.forward[self.idx((x, 0).into())].unwrap().color;
@@ -218,13 +199,10 @@ impl GameBoard {
                     if match_counter >= MIN_MATCH_LENGTH {
                         let first_match = y - match_counter;
                         for backtrace in first_match..y {
-                            let grid_pos = self.idx((x, backtrace).into());
-                            self.forward[grid_pos] = None;
-                            to_be_deleted.insert(
-                                self.backward
-                                    .remove(&self.idx((x, backtrace).into()))
-                                    .unwrap(),
-                            );
+                            let grid_index = self.idx((x, backtrace).into());
+                            to_be_deleted.insert(grid_index);
+                            #[cfg(feature = "debug")]
+                            println!("Pushed tile to be deleted at {}, {}", x, backtrace);
                         }
                     }
                     match_counter = 1;
@@ -237,13 +215,8 @@ impl GameBoard {
             if match_counter >= MIN_MATCH_LENGTH {
                 let first_match = self.dimensions.y - match_counter;
                 for backtrace in first_match..self.dimensions.y {
-                    let grid_pos = self.idx((x, backtrace).into());
-                    self.forward[grid_pos] = None;
-                    to_be_deleted.insert(
-                        self.backward
-                            .remove(&self.idx((x, backtrace).into()))
-                            .unwrap(),
-                    );
+                    let grid_index = self.idx((x, backtrace).into());
+                    to_be_deleted.insert(grid_index);
                     #[cfg(feature = "debug")]
                     println!("Pushed tile to be deleted at {}, {}", x, backtrace);
                 }
@@ -251,11 +224,100 @@ impl GameBoard {
         }
     }
 
-    pub fn remove_matches(&mut self, mut commands: Commands, to_be_deleted: &HashSet<Entity>) {
-        for entity in to_be_deleted {
-            /* let tile_index = self.backward.remove(entity).unwrap();
-            self.forward[tile_index] = None; */
-            commands.entity(*entity).despawn();
+    pub fn remove_matches(&mut self, mut commands: &mut Commands, to_be_deleted: HashSet<usize>) {
+        for index in to_be_deleted {
+            println!("{:?}", index);
+            self.forward[index] = None;
+            let entity = self.backward.remove(&index).unwrap();
+
+            //self.forward[grid_pos] = None;
+            commands.entity(entity).despawn();
+            println!("Depawned: {:?}", entity);
+        }
+    }
+
+    pub fn shuffle_tiles_down(&mut self, mut commands: &mut Commands) -> Vec<u32> {
+        let mut column_spaces: Vec<u32> = Vec::new();
+        let mut space_in_row: u32 = 0;
+        let mut final_y = 0;
+        for x in 0..BOARD_WIDTH {
+            space_in_row = 0;
+            for y in 0..BOARD_HEIGHT {
+                let index = self.idx((x, y).into());
+
+                if self.forward[index].is_none() {
+                    for row in (y + 1)..BOARD_HEIGHT {
+                        let row_index = self.idx((x, row).into());
+                        if self.forward[row_index].is_some() {
+                            self.forward[index] = self.forward[row_index];
+                            self.forward[row_index] = None;
+                            let new_entity = self.backward.remove(&row_index).unwrap();
+                            self.backward.insert(index, new_entity);
+                            commands.entity(new_entity).insert(TileMoving {
+                                origin: (x, row).into(),
+                                destination: (x, y).into(),
+                                duration: Timer::from_seconds(0.0, TimerMode::Once),
+                            });
+                            println!("Moved tile from {}, {} to {}, {}", x, row, x, y);
+                            final_y = y;
+                            space_in_row = (BOARD_HEIGHT - 1) - final_y;
+                            break;
+                        }
+                        if self.forward[row_index].is_none() {
+                            space_in_row += 1;
+                        }
+                    }
+                }
+            }
+            column_spaces.push(space_in_row);
+            if space_in_row > 0 {
+                println!("Row {} found {} spaces", x, space_in_row);
+            }
+            space_in_row = 0;
+        }
+        // println!("{:?}", &column_spaces);
+        column_spaces
+    }
+
+    pub fn spawn_new_tiles(
+        &mut self,
+        mut commands: &mut Commands,
+        column_spaces: Vec<u32>,
+        game_assets: Res<GameAssets>,
+    ) {
+        for x in 0..BOARD_WIDTH as usize {
+            let num_spaces = *column_spaces.get(x).unwrap();
+            if num_spaces > 0 {
+                for y in 1..=num_spaces {
+                    let index = self.idx((x as u32, (BOARD_HEIGHT - y)).into());
+                    let tile_desc = TileDesc::new();
+                    self.forward[index] = Some(tile_desc);
+                    commands.entity(self.entity).with_children(|parent| {
+                        let tile_entity = parent
+                            .spawn(SpriteSheetBundle {
+                                texture_atlas: game_assets.tiles.clone(),
+                                transform: Transform {
+                                    translation: Vec3::new(
+                                        (x as f32 * TILE_WIDTH) + HALF_TILE_WIDTH,
+                                        ((BOARD_HEIGHT - y) as f32 * TILE_HEIGHT)
+                                            + HALF_TILE_HEIGHT,
+                                        2.0,
+                                    ),
+                                    scale: Vec3::new(SPRITE_SCALE, SPRITE_SCALE, 1.0),
+                                    ..Default::default()
+                                },
+                                sprite: TextureAtlasSprite::new(tile_desc.get_index()),
+                                ..Default::default()
+                            })
+                            .insert(Tile)
+                            .insert(tile_desc)
+                            .insert(TilePosition((x as u32, BOARD_HEIGHT - y).into()))
+                            .id();
+                        self.backward.insert(index, tile_entity);
+                        println!("Spawned a tile at: {}, {}", x, BOARD_HEIGHT - y);
+                    });
+                }
+            }
         }
     }
 }
@@ -282,8 +344,17 @@ pub fn create_gameboard(mut commands: Commands, window_query: Query<&Window, Wit
     let window = window_query.get_single().unwrap();
     let window_size = Vec2::new(window.width(), window.height());
     let dimensions = UVec2::new(BOARD_HEIGHT, BOARD_WIDTH);
-    let gameboard = board::GameBoard::new(dimensions, window_size);
-    commands.insert_resource(gameboard);
+    let mut game_board = board::GameBoard::new(dimensions, window_size);
+
+    for y in 0..game_board.dimensions.y {
+        for x in 0..game_board.dimensions.x {
+            let index = game_board.idx((x, y).into());
+            let tile = TileDesc::new();
+            game_board.forward[index] = Some(tile);
+        }
+    }
+
+    commands.insert_resource(game_board);
 }
 
 pub fn fill_gameboard(
@@ -344,7 +415,7 @@ pub fn fill_gameboard(
                             transform: Transform {
                                 translation: Vec3::new(
                                     (x as f32 * tile_width) + (tile_width / 2.),
-                                    (y as f32 * tile_width) + (tile_width / 2.),
+                                    (y as f32 * tile_height) + (tile_height / 2.),
                                     2.0,
                                 ),
                                 scale: Vec3::new(SPRITE_SCALE, SPRITE_SCALE, 1.0),
@@ -367,11 +438,13 @@ pub fn fill_gameboard(
 
 pub fn match_remove_refill(
     mut commands: Commands,
-    tile_query: Query<(Entity, &TileDesc, &TilePosition)>,
     mut game_board: ResMut<GameBoard>,
+    game_assets: Res<GameAssets>,
 ) {
-    let mut to_be_deleted: HashSet<Entity> = HashSet::new();
-    game_board.resolve_horizontal_matches(&tile_query, &mut to_be_deleted);
-    game_board.resolve_vertical_matches(&tile_query, &mut to_be_deleted);
-    game_board.remove_matches(commands, &to_be_deleted);
+    let mut to_be_deleted: HashSet<usize> = HashSet::new();
+    game_board.resolve_horizontal_matches(&mut to_be_deleted);
+    game_board.resolve_vertical_matches(&mut to_be_deleted);
+    game_board.remove_matches(&mut commands, to_be_deleted);
+    let column_spaces = game_board.shuffle_tiles_down(&mut commands);
+    game_board.spawn_new_tiles(&mut commands, column_spaces, game_assets)
 }

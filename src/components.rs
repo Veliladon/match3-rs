@@ -1,6 +1,5 @@
 use crate::*;
 use bevy::{
-    hierarchy::ReportHierarchyIssue,
     prelude::Component,
     time::{Timer, TimerMode},
 };

@@ -69,16 +69,30 @@ fn click_processor(
                                         tile1: game_board.idx(x, y),
                                         tile2: game_board.idx(selected.x, selected.y),
                                     }); */
-                                    let tile1 = game_board.get_entity(grid_pos).unwrap();
-                                    let tile2 = game_board.get_entity(selected_pos).unwrap();
+                                    let tile1_index = game_board.idx(grid_pos);
+                                    let tile2_index = game_board.idx(selected_pos);
 
-                                    commands.entity(tile1).insert(TileMoving {
+                                    let tile1 =
+                                        game_board.forward.get(tile1_index).copied().unwrap();
+                                    let tile2 =
+                                        game_board.forward.get(tile2_index).copied().unwrap();
+
+                                    let tile1_entity = game_board.get_entity(grid_pos).unwrap();
+                                    let tile2_entity = game_board.get_entity(selected_pos).unwrap();
+
+                                    game_board.forward[tile2_index] = tile1;
+                                    game_board.forward[tile1_index] = tile2;
+
+                                    game_board.backward.insert(tile2_index, tile1_entity);
+                                    game_board.backward.insert(tile1_index, tile2_entity);
+
+                                    commands.entity(tile1_entity).insert(TileMoving {
                                         origin: grid_pos,
                                         destination: selected_pos,
 
                                         duration: Timer::from_seconds(0.0, TimerMode::Once),
                                     });
-                                    commands.entity(tile2).insert(TileMoving {
+                                    commands.entity(tile2_entity).insert(TileMoving {
                                         origin: selected_pos,
                                         destination: grid_pos,
                                         duration: Timer::from_seconds(0.0, TimerMode::Once),
