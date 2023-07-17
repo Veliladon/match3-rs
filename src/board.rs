@@ -1,5 +1,3 @@
-use std::cmp::max;
-
 use crate::*;
 use bevy::math::prelude::*;
 use bevy::utils::hashbrown::HashMap;
@@ -224,7 +222,7 @@ impl GameBoard {
         }
     }
 
-    pub fn remove_matches(&mut self, mut commands: &mut Commands, to_be_deleted: HashSet<usize>) {
+    pub fn remove_matches(&mut self, commands: &mut Commands, to_be_deleted: HashSet<usize>) {
         for index in to_be_deleted {
             println!("{:?}", index);
             self.forward[index] = None;
@@ -236,9 +234,9 @@ impl GameBoard {
         }
     }
 
-    pub fn shuffle_tiles_down(&mut self, mut commands: &mut Commands) -> Vec<u32> {
+    pub fn shuffle_tiles_down(&mut self, commands: &mut Commands) -> Vec<u32> {
         let mut column_spaces: Vec<u32> = Vec::new();
-        let mut space_in_row: u32 = 0;
+        let mut space_in_row;
         //let mut final_y = 0;
         for x in 0..BOARD_WIDTH {
             space_in_row = 0;
@@ -276,7 +274,6 @@ impl GameBoard {
             if space_in_row > 0 {
                 println!("Row {} found {} spaces", x, space_in_row);
             }
-            space_in_row = 0;
         }
         // println!("{:?}", &column_spaces);
         column_spaces
@@ -284,7 +281,7 @@ impl GameBoard {
 
     pub fn spawn_new_tiles(
         &mut self,
-        mut commands: &mut Commands,
+        commands: &mut Commands,
         column_spaces: Vec<u32>,
         game_assets: Res<GameAssets>,
     ) {
