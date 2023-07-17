@@ -224,6 +224,7 @@ impl GameBoard {
 
     pub fn remove_matches(&mut self, commands: &mut Commands, to_be_deleted: HashSet<usize>) {
         for index in to_be_deleted {
+            #[cfg(feature = "debug")]
             println!("{:?}", index);
             self.forward[index] = None;
             let entity = self.backward.remove(&index).unwrap();
