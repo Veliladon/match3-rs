@@ -1,3 +1,5 @@
+// #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 mod board;
 mod components;
 mod distance;
@@ -17,6 +19,7 @@ pub use crate::resources::*;
 pub use crate::tile::*;
 pub use crate::tilemove::*;
 
+pub use bevy::log::LogPlugin;
 pub use bevy::window::CursorGrabMode;
 pub use bevy::{math::prelude::*, prelude::*, window::PrimaryWindow};
 
@@ -43,7 +46,14 @@ const MIN_MATCH_LENGTH: u32 = 3;
 fn main() {
     App::new()
         .insert_resource(ClearColor(Color::rgb(0.04, 0.04, 0.5)))
-        .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
+        .add_plugins(
+            DefaultPlugins
+                .set(ImagePlugin::default_nearest())
+                .set(LogPlugin {
+                    level: bevy::log::Level::INFO,
+                    filter: "info,wgpu_core=warn,wgpu_hal=warn".into(),
+                }),
+        )
         .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(PointerPlugin)
         .add_plugin(EffectsPlugin)

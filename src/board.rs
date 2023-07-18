@@ -82,15 +82,7 @@ impl GameBoard {
         if grid_y < 0.0 || grid_y > board_height {
             return None;
         }
-
-        #[cfg(feature = "debug")]
-        println!("Looking for tile in {}, {}", grid_x, grid_y);
-
         let grid_pos = UVec2::new((grid_x / TILE_WIDTH) as u32, (grid_y / TILE_HEIGHT) as u32);
-
-        #[cfg(feature = "debug")]
-        println!("x: {}, y: {}", grid_pos.x, grid_pos.y);
-
         Some(self.idx(grid_pos))
     }
 
@@ -158,8 +150,7 @@ impl GameBoard {
                             let grid_index = self.idx((backtrace, y).into());
                             to_be_deleted.insert(grid_index);
 
-                            #[cfg(feature = "debug")]
-                            println!("Pushed tile to be deleted at {}, {}", backtrace, y);
+                            info!("Pushed tile to be deleted at {}, {}", backtrace, y);
                         }
                     }
                     match_counter = 1;
@@ -175,8 +166,7 @@ impl GameBoard {
                     let grid_index = self.idx((backtrace, y).into());
                     to_be_deleted.insert(grid_index);
 
-                    #[cfg(feature = "debug")]
-                    println!("Pushed tile to be deleted at {}, {}", backtrace, y);
+                    info!("Pushed tile to be deleted at {}, {}", backtrace, y);
                 }
             }
         }
@@ -199,8 +189,8 @@ impl GameBoard {
                         for backtrace in first_match..y {
                             let grid_index = self.idx((x, backtrace).into());
                             to_be_deleted.insert(grid_index);
-                            #[cfg(feature = "debug")]
-                            println!("Pushed tile to be deleted at {}, {}", x, backtrace);
+
+                            info!("Pushed tile to be deleted at {}, {}", x, backtrace);
                         }
                     }
                     match_counter = 1;
@@ -215,8 +205,8 @@ impl GameBoard {
                 for backtrace in first_match..self.dimensions.y {
                     let grid_index = self.idx((x, backtrace).into());
                     to_be_deleted.insert(grid_index);
-                    #[cfg(feature = "debug")]
-                    println!("Pushed tile to be deleted at {}, {}", x, backtrace);
+
+                    info!("Pushed tile to be deleted at {}, {}", x, backtrace);
                 }
             }
         }
@@ -224,13 +214,12 @@ impl GameBoard {
 
     pub fn remove_matches(&mut self, commands: &mut Commands, to_be_deleted: HashSet<usize>) {
         for index in to_be_deleted {
-            println!("{:?}", index);
             self.forward[index] = None;
             let entity = self.backward.remove(&index).unwrap();
 
             commands.entity(entity).despawn();
-            #[cfg(feature = "debug")]
-            println!("Depawned: {:?}", entity);
+
+            info!("Depawned: {:?}", entity);
         }
     }
 
@@ -256,8 +245,8 @@ impl GameBoard {
                                 destination: (x, y).into(),
                                 duration: Timer::from_seconds(0.0, TimerMode::Once),
                             });
-                            #[cfg(feature = "debug")]
-                            println!("Moved tile from {}, {} to {}, {}", x, row, x, y);
+
+                            info!("Moved tile from {}, {} to {}, {}", x, row, x, y);
                             //final_y = y;
                             //space_in_row = (BOARD_HEIGHT - 1) - final_y;
                             break;
@@ -272,9 +261,9 @@ impl GameBoard {
                 }
             }
             column_spaces.push(space_in_row);
-            #[cfg(feature = "debug")]
+
             if space_in_row > 0 {
-                println!("Row {} found {} spaces", x, space_in_row);
+                info!("Row {} found {} spaces", x, space_in_row);
             }
         }
 
@@ -316,8 +305,8 @@ impl GameBoard {
                             .insert(TilePosition((x as u32, BOARD_HEIGHT - y).into()))
                             .id();
                         self.backward.insert(index, tile_entity);
-                        #[cfg(feature = "debug")]
-                        println!("Spawned a tile at: {}, {}", x, BOARD_HEIGHT - y);
+
+                        info!("Spawned a tile at: {}, {}", x, BOARD_HEIGHT - y);
                     });
                 }
             }
@@ -332,14 +321,10 @@ pub fn find_origin(windowsize: Vec2) -> Vec2 {
     let board_width = BOARD_WIDTH as f32 * TILE_WIDTH;
 
     let top_margin = (window_height / 2.0) - (board_height / 2.0);
-    #[cfg(feature = "debug")]
-    println!("Top Margin: {}", top_margin);
 
     let top_left_x = (window_width / 2.0) - (top_margin + board_width);
     let top_left_y = -(board_height / 2.0);
 
-    #[cfg(feature = "debug")]
-    println!("Board top_left: {}, {}", top_left_x, top_left_y);
     Vec2::new(top_left_x, top_left_y)
 }
 
@@ -366,10 +351,7 @@ pub fn fill_gameboard(
     mut game_board: ResMut<GameBoard>,
 ) {
     let offset = game_board.get_offsets();
-    #[cfg(feature = "debug")]
-    println!("x offset: {}", offset.x);
-    #[cfg(feature = "debug")]
-    println!("y offset: {}", offset.y);
+
     // let mut grid_pos = UVec2::new(0, 0);
 
     let board_entity = commands
@@ -409,9 +391,7 @@ pub fn fill_gameboard(
                 for x in 0..game_board.dimensions.x {
                     let grid_pos = (x, y).into();
                     let index = game_board.idx(grid_pos);
-                    //let world_pos = game_board.get_world_pos(grid_pos);
                     let tile_desc = game_board.forward[index].unwrap();
-                    //println!("Found empty tile, Generating {:?}", tile_desc);
                     let tile_entity = parent
                         .spawn(SpriteSheetBundle {
                             texture_atlas: game_assets.tiles.clone(),

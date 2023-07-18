@@ -35,8 +35,8 @@ fn cursor_system(
             left_click.send(LeftClickEvent {
                 position: (world_position.x, world_position.y).into(),
             });
-            #[cfg(feature = "debug")]
-            println!(
+
+            info!(
                 "Clicked! World coords: {}/{}",
                 world_position.x, world_position.y
             );
@@ -60,8 +60,8 @@ fn click_processor(
                         match distance {
                             0 => {
                                 commands.remove_resource::<SelectedTile>();
-                                #[cfg(feature = "debug")]
-                                println!("Deselected Tile: {}, {}", grid_pos.x, grid_pos.y);
+
+                                info!("Deselected Tile: {}, {}", grid_pos.x, grid_pos.y);
                             }
                             1 => {
                                 let tile1_index = game_board.idx(grid_pos);
@@ -92,33 +92,33 @@ fn click_processor(
                                 });
 
                                 commands.remove_resource::<SelectedTile>();
-                                #[cfg(feature = "debug")]
-                                println!(
+
+                                info!(
                                     "Swapsies! {}, {} and {}, {}",
                                     grid_pos.x, grid_pos.y, selected_pos.x, selected_pos.y
                                 );
                             }
                             _ => {
                                 commands.insert_resource(SelectedTile(grid_pos));
-                                #[cfg(feature = "debug")]
-                                println!("Changed Selected Tile: {}, {}", grid_pos.x, grid_pos.y);
+
+                                info!("Changed Selected Tile: {}, {}", grid_pos.x, grid_pos.y);
                             }
                         }
                     }
                     None => {
                         commands.insert_resource(SelectedTile(grid_pos));
-                        #[cfg(feature = "debug")]
-                        println!("Selected New Tile: {}, {}", grid_pos.x, grid_pos.y);
+
+                        info!("Selected New Tile: {}, {}", grid_pos.x, grid_pos.y);
                     }
                 },
                 None => {
                     commands.remove_resource::<SelectedTile>();
-                    #[cfg(feature = "debug")]
-                    println!("Empty Tile Selected, Deselecting!");
+
+                    info!("Empty Tile Selected, Deselecting!");
                 }
             }
-            #[cfg(feature = "debug")]
-            println!(
+
+            info!(
                 "Someone clicked! World coords: {}/{}",
                 event.position.x, event.position.y
             );

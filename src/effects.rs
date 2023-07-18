@@ -19,31 +19,33 @@ pub fn add_sprite_to_selected_tile(
 ) {
     match selected_tile {
         Some(mut selected) => {
-            let board_entity = game_board.entity;
-            let selected_pos = selected.as_mut().as_uvec2();
-            let board_pos = game_board.get_board_pos(selected_pos);
+            if selected.is_changed() || selected.is_added() {
+                if let Ok((entity, _)) = highlight_query.get_single_mut() {
+                    commands.entity(entity).despawn();
+                }
+                let selected_pos = selected.as_mut().as_uvec2();
+                let selected_idx = game_board.idx(selected_pos);
+                let selected_entity = game_board.backward.get(&selected_idx).copied().unwrap();
+                commands.entity(selected_entity).with_children(|parent| {
+                    parent
+                        .spawn(SpriteBundle {
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.0),
+                                custom_size: Some(Vec2::new(HALF_TILE_WIDTH, HALF_TILE_HEIGHT)),
 
-            if let Ok((_, transform)) = &mut highlight_query.get_single_mut() {
-                transform.translation.x = board_pos.x;
-                transform.translation.y = board_pos.y;
-            } else {
-                commands
-                    .spawn(SpriteBundle {
-                        sprite: Sprite {
-                            color: Color::rgba(1.0, 1.0, 1.0, 0.0),
-                            custom_size: Some(Vec2::new(TILE_WIDTH, TILE_HEIGHT)),
+                                ..default()
+                            },
+                            transform: Transform {
+                                translation: Vec3::new(0.0, 0.0, 3.0),
+                                scale: Vec3::splat(1.0),
+                                ..Default::default()
+                            },
+
                             ..default()
-                        },
-                        transform: Transform::from_translation(Vec3::new(
-                            board_pos.x,
-                            board_pos.y,
-                            3.0,
-                        )),
-                        ..default()
-                    })
-                    .insert(TileHighlight::default())
-                    .insert(TilePosition(selected_pos))
-                    .set_parent(board_entity);
+                        })
+                        .insert(TileHighlight::default())
+                        .insert(TilePosition(selected_pos));
+                });
             }
         }
         None => {
