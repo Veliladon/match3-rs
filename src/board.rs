@@ -35,9 +35,9 @@ pub struct GameBoardPlugin;
 
 impl Plugin for GameBoardPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(create_gameboard.in_base_set(StartupSet::Startup))
-            .add_startup_system(fill_gameboard.in_base_set(StartupSet::PostStartup))
-            .add_system(match_remove_refill.in_base_set(CoreSet::PostUpdate));
+        app.add_systems(Startup, create_gameboard)
+            .add_systems(PostStartup, fill_gameboard)
+            .add_systems(PostUpdate, match_remove_refill);
     }
 }
 

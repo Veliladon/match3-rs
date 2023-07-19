@@ -8,11 +8,11 @@ pub struct PointerPlugin;
 impl Plugin for PointerPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<LeftClickEvent>()
-            .add_system(cursor_system)
-            .add_system(click_processor.after(cursor_system));
+            .add_systems(Update, cursor_system)
+            .add_systems(Update, click_processor.after(cursor_system));
     }
 }
-
+#[derive(Event)]
 pub struct LeftClickEvent {
     pub position: Vec2,
 }

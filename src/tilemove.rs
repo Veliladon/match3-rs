@@ -5,7 +5,7 @@ pub struct TileMovePlugin;
 
 impl Plugin for TileMovePlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(tile_mover);
+        app.add_systems(Update, tile_mover);
     }
 }
 

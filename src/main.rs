@@ -54,13 +54,13 @@ fn main() {
                     filter: "info,wgpu_core=warn,wgpu_hal=warn".into(),
                 }),
         )
-        .add_plugin(WorldInspectorPlugin::new())
-        .add_plugin(PointerPlugin)
-        .add_plugin(EffectsPlugin)
-        .add_plugin(TileMovePlugin)
-        .add_plugin(GameBoardPlugin)
-        .add_startup_system(setup_system.in_base_set(StartupSet::Startup))
-        .add_startup_system(draw_background.in_base_set(StartupSet::PostStartup))
+        .add_plugins(WorldInspectorPlugin::new())
+        .add_plugins(PointerPlugin)
+        .add_plugins(EffectsPlugin)
+        .add_plugins(TileMovePlugin)
+        .add_plugins(GameBoardPlugin)
+        .add_systems(Startup, setup_system)
+        .add_systems(PostStartup, draw_background)
         .run();
 }
 

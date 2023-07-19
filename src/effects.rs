@@ -6,8 +6,8 @@ pub struct EffectsPlugin;
 
 impl Plugin for EffectsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(add_sprite_to_selected_tile);
-        app.add_system(animated_selected_tile);
+        app.add_systems(Update, add_sprite_to_selected_tile);
+        app.add_systems(Update, animated_selected_tile);
     }
 }
 
@@ -31,7 +31,7 @@ pub fn add_sprite_to_selected_tile(
                         .spawn(SpriteBundle {
                             sprite: Sprite {
                                 color: Color::rgba(1.0, 1.0, 1.0, 0.0),
-                                custom_size: Some(Vec2::new(HALF_TILE_WIDTH, HALF_TILE_HEIGHT)),
+                                custom_size: Some(Vec2::new(SHEET_TILE_WIDTH, SHEET_TILE_HEIGHT)),
 
                                 ..default()
                             },
