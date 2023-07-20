@@ -41,6 +41,22 @@ impl Plugin for GameBoardPlugin {
     }
 }
 
+pub trait Index2D<RHS = Self> {
+    fn idx(&self, grid_pos: RHS) -> usize;
+}
+
+impl Index2D<(u32, u32)> for GameBoard {
+    fn idx(&self, grid_pos: (u32, u32)) -> usize {
+        grid_pos.1 as usize * self.dimensions.x as usize + grid_pos.0 as usize
+    }
+}
+
+impl Index2D<UVec2> for GameBoard {
+    fn idx(&self, grid_pos: UVec2) -> usize {
+        grid_pos.y as usize * self.dimensions.x as usize + grid_pos.x as usize
+    }
+}
+
 impl GameBoard {
     pub fn new(dimensions: UVec2, windowsize: Vec2) -> GameBoard {
         let origin = find_origin(windowsize);
@@ -64,10 +80,6 @@ impl GameBoard {
             origin: origin,
             entity: Entity::PLACEHOLDER,
         }
-    }
-
-    pub fn idx(&self, grid_pos: UVec2) -> usize {
-        grid_pos.y as usize * self.dimensions.x as usize + grid_pos.x as usize
     }
 
     pub fn find_index_from_world(&self, position: Vec2) -> Option<usize> {
@@ -135,10 +147,10 @@ impl GameBoard {
     pub fn resolve_horizontal_matches(&mut self, to_be_deleted: &mut HashSet<usize>) {
         for y in 0..self.dimensions.y {
             let mut match_counter: u32 = 1;
-            let mut color_to_match = self.forward[self.idx((0, y).into())].unwrap().color;
+            let mut color_to_match = self.forward[self.idx((0, y))].unwrap().color;
 
             for x in 1..self.dimensions.x {
-                let next_entity_color = self.forward[self.idx((x, y).into())].unwrap().color;
+                let next_entity_color = self.forward[self.idx((x, y))].unwrap().color;
                 if next_entity_color == color_to_match {
                     match_counter += 1;
                 } else {
@@ -147,7 +159,7 @@ impl GameBoard {
                     if match_counter >= MIN_MATCH_LENGTH {
                         let first_match = x - match_counter;
                         for backtrace in first_match..x {
-                            let grid_index = self.idx((backtrace, y).into());
+                            let grid_index = self.idx((backtrace, y));
                             to_be_deleted.insert(grid_index);
 
                             info!("Pushed tile to be deleted at {}, {}", backtrace, y);
@@ -163,7 +175,7 @@ impl GameBoard {
             if match_counter >= MIN_MATCH_LENGTH {
                 let first_match = self.dimensions.x - match_counter;
                 for backtrace in first_match..self.dimensions.x {
-                    let grid_index = self.idx((backtrace, y).into());
+                    let grid_index = self.idx((backtrace, y));
                     to_be_deleted.insert(grid_index);
 
                     info!("Pushed tile to be deleted at {}, {}", backtrace, y);
@@ -175,10 +187,10 @@ impl GameBoard {
     pub fn resolve_vertical_matches(&mut self, to_be_deleted: &mut HashSet<usize>) {
         for x in 0..self.dimensions.x {
             let mut match_counter: u32 = 1;
-            let mut color_to_match = self.forward[self.idx((x, 0).into())].unwrap().color;
+            let mut color_to_match = self.forward[self.idx((x, 0))].unwrap().color;
 
             for y in 1..self.dimensions.y {
-                let next_entity_color = self.forward[self.idx((x, y).into())].unwrap().color;
+                let next_entity_color = self.forward[self.idx((x, y))].unwrap().color;
                 if next_entity_color == color_to_match {
                     match_counter += 1;
                 } else {
@@ -187,7 +199,7 @@ impl GameBoard {
                     if match_counter >= MIN_MATCH_LENGTH {
                         let first_match = y - match_counter;
                         for backtrace in first_match..y {
-                            let grid_index = self.idx((x, backtrace).into());
+                            let grid_index = self.idx((x, backtrace));
                             to_be_deleted.insert(grid_index);
 
                             info!("Pushed tile to be deleted at {}, {}", x, backtrace);
@@ -203,7 +215,7 @@ impl GameBoard {
             if match_counter >= MIN_MATCH_LENGTH {
                 let first_match = self.dimensions.y - match_counter;
                 for backtrace in first_match..self.dimensions.y {
-                    let grid_index = self.idx((x, backtrace).into());
+                    let grid_index = self.idx((x, backtrace));
                     to_be_deleted.insert(grid_index);
 
                     info!("Pushed tile to be deleted at {}, {}", x, backtrace);
@@ -230,11 +242,11 @@ impl GameBoard {
         for x in 0..BOARD_WIDTH {
             space_in_row = 0;
             for y in 0..BOARD_HEIGHT {
-                let index = self.idx((x, y).into());
+                let index = self.idx((x, y));
 
                 if self.forward[index].is_none() {
                     for row in (y + 1)..BOARD_HEIGHT {
-                        let row_index = self.idx((x, row).into());
+                        let row_index = self.idx((x, row));
                         if self.forward[row_index].is_some() {
                             self.forward[index] = self.forward[row_index];
                             self.forward[row_index] = None;
@@ -255,7 +267,7 @@ impl GameBoard {
                 }
             }
             for y in 0..BOARD_HEIGHT {
-                let index = self.idx((x, y).into());
+                let index = self.idx((x, y));
                 if self.forward[index].is_none() {
                     space_in_row += 1;
                 }
@@ -280,7 +292,7 @@ impl GameBoard {
             let num_spaces = *column_spaces.get(x).unwrap();
             if num_spaces > 0 {
                 for y in 1..=num_spaces {
-                    let index = self.idx((x as u32, (BOARD_HEIGHT - y)).into());
+                    let index = self.idx((x as u32, (BOARD_HEIGHT - y)));
                     let tile_desc = TileDesc::new();
                     self.forward[index] = Some(tile_desc);
                     commands.entity(self.entity).with_children(|parent| {
@@ -336,7 +348,7 @@ pub fn create_gameboard(mut commands: Commands, window_query: Query<&Window, Wit
 
     for y in 0..game_board.dimensions.y {
         for x in 0..game_board.dimensions.x {
-            let index = game_board.idx((x, y).into());
+            let index = game_board.idx((x, y));
             let tile = TileDesc::new();
             game_board.forward[index] = Some(tile);
         }
