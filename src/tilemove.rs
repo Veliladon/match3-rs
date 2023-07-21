@@ -2,6 +2,13 @@ use crate::*;
 use bevy::prelude::*;
 use simple_easing::expo_in_out;
 
+#[derive(States, PartialEq, Eq, Debug, Clone, Hash, Default)]
+enum MoveState {
+    #[default]
+    NotMoving,
+    Moving,
+}
+
 pub struct TileMovePlugin;
 
 impl Plugin for TileMovePlugin {
@@ -15,6 +22,8 @@ pub fn tile_mover(
     mut move_query: Query<(Entity, &mut Transform, &mut TileMoving), With<TileMoving>>,
     time: Res<Time>,
 ) {
+    let mut num_tile_moving = move_query.iter().count();
+
     for (entity, mut transform, mut tile_move) in move_query.iter_mut() {
         // We tick the TileMoving timer along
         tile_move.duration.tick(time.delta());
@@ -25,6 +34,7 @@ pub fn tile_mover(
             transform.translation.x = tile_move.destination.x;
             transform.translation.y = tile_move.destination.y;
             commands.entity(entity).remove::<TileMoving>();
+            num_tile_moving -= 1;
         } else {
             // Otherwise we update the tile's transform based on an easing function
 
@@ -36,4 +46,7 @@ pub fn tile_mover(
             transform.translation.y = tile_move.origin.y + final_transform.y;
         }
     }
+    /* if num_tile_moving == 0 {
+        info!("All tiles finished moving!");
+    } */
 }

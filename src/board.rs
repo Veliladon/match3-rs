@@ -2,6 +2,7 @@ use crate::*;
 use bevy::math::prelude::*;
 use bevy::utils::hashbrown::HashMap;
 use bevy::utils::HashSet;
+use rand::seq::index;
 
 /* const SQUARE_COORD: [(i8, i8); 8] = [
     // Bottom left
@@ -363,7 +364,24 @@ pub fn create_gameboard(mut commands: Commands, window_query: Query<&Window, Wit
         }
     }
 
+    check_intial_tiles(&mut game_board);
+
     commands.insert_resource(game_board);
+    info!("Inserted Gameboard");
+}
+
+pub fn check_intial_tiles(game_board: &mut GameBoard) {
+    let mut to_be_deleted: HashSet<usize> = HashSet::new();
+    game_board.resolve_horizontal_matches(&mut to_be_deleted);
+    game_board.resolve_vertical_matches(&mut to_be_deleted);
+    if to_be_deleted.len() == 0 {
+        return;
+    }
+    for index in to_be_deleted.iter() {
+        game_board.forward[*index] = Some(TileDesc::new());
+        info!("Replaced already matching tiles.")
+    }
+    check_intial_tiles(game_board);
 }
 
 pub fn fill_gameboard(

@@ -6,6 +6,7 @@ mod distance;
 mod effects;
 mod pointer;
 mod resources;
+mod states;
 mod tile;
 mod tilemove;
 
@@ -16,6 +17,7 @@ pub use crate::distance::LDistance;
 pub use crate::effects::*;
 pub use crate::pointer::*;
 pub use crate::resources::*;
+pub use crate::states::*;
 pub use crate::tile::*;
 pub use crate::tilemove::*;
 
