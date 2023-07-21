@@ -79,15 +79,19 @@ fn click_processor(
                                 game_board.backward.insert(tile2_index, tile1_entity);
                                 game_board.backward.insert(tile1_index, tile2_entity);
 
+                                let grid_transform = game_board.find_local_from_grid(grid_pos);
+                                let selected_transform =
+                                    game_board.find_local_from_grid(selected_pos);
+
                                 commands.entity(tile1_entity).insert(TileMoving {
-                                    origin: grid_pos,
-                                    destination: selected_pos,
+                                    origin: grid_transform,
+                                    destination: selected_transform,
 
                                     duration: Timer::from_seconds(0.5, TimerMode::Once),
                                 });
                                 commands.entity(tile2_entity).insert(TileMoving {
-                                    origin: selected_pos,
-                                    destination: grid_pos,
+                                    origin: selected_transform,
+                                    destination: grid_transform,
                                     duration: Timer::from_seconds(0.5, TimerMode::Once),
                                 });
 

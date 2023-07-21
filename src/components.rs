@@ -19,8 +19,8 @@ pub struct Tile;
 
 #[derive(Component)]
 pub struct TileMoving {
-    pub origin: UVec2,
-    pub destination: UVec2,
+    pub origin: Vec2,
+    pub destination: Vec2,
     pub duration: Timer,
 }
 

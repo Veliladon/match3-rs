@@ -259,9 +259,11 @@ impl GameBoard {
                             self.forward[row_index] = None;
                             let new_entity = self.backward.remove(&row_index).unwrap();
                             self.backward.insert(index, new_entity);
+                            let origin_transform = self.find_local_from_grid((x, row).into());
+                            let destination_transform = self.find_local_from_grid((x, y).into());
                             commands.entity(new_entity).insert(TileMoving {
-                                origin: (x, row).into(),
-                                destination: (x, y).into(),
+                                origin: origin_transform,
+                                destination: destination_transform,
                                 duration: Timer::from_seconds(0.5, TimerMode::Once),
                             });
 
