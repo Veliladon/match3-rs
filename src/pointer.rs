@@ -83,12 +83,12 @@ fn click_processor(
                                     origin: grid_pos,
                                     destination: selected_pos,
 
-                                    duration: Timer::from_seconds(0.0, TimerMode::Once),
+                                    duration: Timer::from_seconds(0.5, TimerMode::Once),
                                 });
                                 commands.entity(tile2_entity).insert(TileMoving {
                                     origin: selected_pos,
                                     destination: grid_pos,
-                                    duration: Timer::from_seconds(0.0, TimerMode::Once),
+                                    duration: Timer::from_seconds(0.5, TimerMode::Once),
                                 });
 
                                 commands.remove_resource::<SelectedTile>();

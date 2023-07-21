@@ -82,6 +82,13 @@ impl GameBoard {
         }
     }
 
+    pub fn find_local_from_grid(&self, position: UVec2) -> Vec2 {
+        Vec2 {
+            x: (position.x as f32 * TILE_WIDTH) + (TILE_WIDTH / 2.),
+            y: (position.y as f32 * TILE_HEIGHT) + (TILE_HEIGHT / 2.),
+        }
+    }
+
     pub fn find_index_from_world(&self, position: Vec2) -> Option<usize> {
         let board_width = TILE_WIDTH * self.dimensions.x as f32;
         let board_height = TILE_HEIGHT * self.dimensions.y as f32;
@@ -255,7 +262,7 @@ impl GameBoard {
                             commands.entity(new_entity).insert(TileMoving {
                                 origin: (x, row).into(),
                                 destination: (x, y).into(),
-                                duration: Timer::from_seconds(0.0, TimerMode::Once),
+                                duration: Timer::from_seconds(0.5, TimerMode::Once),
                             });
 
                             info!("Moved tile from {}, {} to {}, {}", x, row, x, y);
