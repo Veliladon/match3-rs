@@ -2,7 +2,6 @@ use crate::*;
 use bevy::math::prelude::*;
 use bevy::utils::hashbrown::HashMap;
 use bevy::utils::HashSet;
-use rand::seq::index;
 
 /* const SQUARE_COORD: [(i8, i8); 8] = [
     // Bottom left
@@ -38,7 +37,10 @@ impl Plugin for GameBoardPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, create_gameboard)
             .add_systems(PostStartup, fill_gameboard)
-            .add_systems(PostUpdate, match_remove_refill);
+            .add_systems(
+                Update,
+                match_remove_refill.run_if(in_state(MoveState::NotMoving)),
+            );
     }
 }
 

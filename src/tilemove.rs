@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use simple_easing::expo_in_out;
 
 #[derive(States, PartialEq, Eq, Debug, Clone, Hash, Default)]
-enum MoveState {
+pub enum MoveState {
     #[default]
     NotMoving,
     Moving,
@@ -13,7 +13,8 @@ pub struct TileMovePlugin;
 
 impl Plugin for TileMovePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, tile_mover);
+        app.add_systems(PostUpdate, tile_mover)
+            .add_state::<MoveState>();
     }
 }
 
@@ -21,8 +22,13 @@ pub fn tile_mover(
     mut commands: Commands,
     mut move_query: Query<(Entity, &mut Transform, &mut TileMoving), With<TileMoving>>,
     time: Res<Time>,
+    mut next_state: ResMut<NextState<MoveState>>,
 ) {
     let mut num_tile_moving = move_query.iter().count();
+
+    if num_tile_moving > 0 {
+        next_state.set(MoveState::Moving);
+    }
 
     for (entity, mut transform, mut tile_move) in move_query.iter_mut() {
         // We tick the TileMoving timer along
@@ -35,6 +41,7 @@ pub fn tile_mover(
             transform.translation.y = tile_move.destination.y;
             commands.entity(entity).remove::<TileMoving>();
             num_tile_moving -= 1;
+            info!("Finished Moving Tile");
         } else {
             // Otherwise we update the tile's transform based on an easing function
 
@@ -46,7 +53,7 @@ pub fn tile_mover(
             transform.translation.y = tile_move.origin.y + final_transform.y;
         }
     }
-    /* if num_tile_moving == 0 {
-        info!("All tiles finished moving!");
-    } */
+    if num_tile_moving == 0 {
+        next_state.set(MoveState::NotMoving);
+    }
 }
