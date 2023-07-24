@@ -307,17 +307,19 @@ impl GameBoard {
                     let index = self.idx((x as u32, (BOARD_HEIGHT - y)));
                     let tile_desc = TileDesc::new();
                     self.forward[index] = Some(tile_desc);
+                    let destination =
+                        self.find_local_from_grid((x as u32, (BOARD_HEIGHT - y)).into());
+                    let origin = Vec2::new(
+                        destination.x,
+                        destination.y + (BOARD_HEIGHT as f32 * TILE_HEIGHT),
+                    );
+
                     commands.entity(self.entity).with_children(|parent| {
                         let tile_entity = parent
                             .spawn(SpriteSheetBundle {
                                 texture_atlas: game_assets.tiles.clone(),
                                 transform: Transform {
-                                    translation: Vec3::new(
-                                        (x as f32 * TILE_WIDTH) + HALF_TILE_WIDTH,
-                                        ((BOARD_HEIGHT - y) as f32 * TILE_HEIGHT)
-                                            + HALF_TILE_HEIGHT,
-                                        2.0,
-                                    ),
+                                    translation: Vec3::new(origin.x, origin.y, 2.0),
                                     scale: Vec3::new(SPRITE_SCALE, SPRITE_SCALE, 1.0),
                                     ..Default::default()
                                 },
@@ -327,6 +329,11 @@ impl GameBoard {
                             .insert(Tile)
                             .insert(tile_desc)
                             .insert(TilePosition((x as u32, BOARD_HEIGHT - y).into()))
+                            .insert(TileMoving {
+                                origin,
+                                destination,
+                                duration: Timer::from_seconds(0.5, TimerMode::Once),
+                            })
                             .id();
                         self.backward.insert(index, tile_entity);
 

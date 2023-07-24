@@ -7,6 +7,9 @@ pub struct GameAssets {
 }
 
 #[derive(Resource, Copy, Clone, Debug)]
+pub struct DespawnTile;
+
+#[derive(Resource, Copy, Clone, Debug)]
 
 pub struct SelectedTile(pub UVec2);
 
