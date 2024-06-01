@@ -18,7 +18,7 @@ pub struct LeftClickEvent {
 }
 
 fn cursor_system(
-    btn: Res<Input<MouseButton>>,
+    btn: Res<ButtonInput<MouseButton>>,
     camera_query: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
     mut left_click: EventWriter<LeftClickEvent>,
@@ -52,7 +52,7 @@ fn click_processor(
     if !left_click.is_empty() {
         let selected_pos = selected_tile.map(|x| x.as_uvec2());
 
-        for event in left_click.iter() {
+        for event in left_click.read() {
             match game_board.find_grid_from_world(event.position) {
                 Some(grid_pos) => match selected_pos {
                     Some(selected_pos) => {

@@ -54,6 +54,7 @@ fn main() {
                 .set(LogPlugin {
                     level: bevy::log::Level::INFO,
                     filter: "info,wgpu_core=warn,wgpu_hal=warn".into(),
+                    ..default()
                 }),
         )
         .add_plugins(WorldInspectorPlugin::new())
@@ -69,15 +70,14 @@ fn main() {
 fn setup_system(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    mut texture_atlases: ResMut<Assets<TextureAtlasLayout>>,
 ) {
     commands.spawn((Camera2dBundle::default(), MainCamera));
 
     let background_handle: Handle<Image> = asset_server.load(BACKGROUND);
 
-    let tile_texture_handle = asset_server.load(TILE_SHEET);
-    let tile_texture_atlas = TextureAtlas::from_grid(
-        tile_texture_handle,
+    let tile_texture_handle: Handle<Image> = asset_server.load(TILE_SHEET);
+    let tile_texture_atlas = TextureAtlasLayout::from_grid(
         Vec2::new(SHEET_TILE_WIDTH, SHEET_TILE_HEIGHT),
         12,
         9,
@@ -87,7 +87,8 @@ fn setup_system(
     let tile_atlas = texture_atlases.add(tile_texture_atlas);
     let game_assets = GameAssets {
         background: background_handle,
-        tiles: tile_atlas,
+        tiles: tile_texture_handle,
+        tiles_layout: tile_atlas,
     };
 
     commands.insert_resource(game_assets);

@@ -14,7 +14,7 @@ pub struct TileMovePlugin;
 impl Plugin for TileMovePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PostUpdate, tile_mover)
-            .add_state::<MoveState>();
+            .init_state::<MoveState>();
     }
 }
 
@@ -46,7 +46,7 @@ pub fn tile_mover(
             // Otherwise we update the tile's transform based on an easing function
 
             let mut final_transform = tile_move.destination - tile_move.origin;
-            let percent_complete = tile_move.duration.percent();
+            let percent_complete = tile_move.duration.fraction();
             let eased_percent = expo_in_out(percent_complete);
             final_transform = final_transform * eased_percent;
             transform.translation.x = tile_move.origin.x + final_transform.x;

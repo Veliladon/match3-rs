@@ -62,7 +62,7 @@ pub fn animated_selected_tile(
 ) {
     if let Ok((mut sprite, mut highlight_timer)) = highlight_query.get_single_mut() {
         highlight_timer.0.tick(time.delta());
-        let duration = highlight_timer.0.percent();
+        let duration = highlight_timer.0.fraction();
         let mut new_alpha = 0.0;
 
         if duration < 0.5 {

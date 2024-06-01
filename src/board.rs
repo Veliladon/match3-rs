@@ -317,14 +317,18 @@ impl GameBoard {
                     commands.entity(self.entity).with_children(|parent| {
                         let tile_entity = parent
                             .spawn(SpriteSheetBundle {
-                                texture_atlas: game_assets.tiles.clone(),
+                                atlas: TextureAtlas {
+                                    layout: game_assets.tiles_layout.clone(),
+                                    index: tile_desc.get_index(),
+                                },
+                                texture: game_assets.tiles.clone(),
                                 transform: Transform {
                                     translation: Vec3::new(origin.x, origin.y, 2.0),
                                     scale: Vec3::new(SPRITE_SCALE, SPRITE_SCALE, 1.0),
                                     ..Default::default()
                                 },
-                                sprite: TextureAtlasSprite::new(tile_desc.get_index()),
-                                ..Default::default()
+                                sprite: Sprite::default(),
+                                ..default()
                             })
                             .insert(Tile)
                             .insert(tile_desc)
@@ -410,7 +414,6 @@ pub fn fill_gameboard(
             visibility: Visibility::Visible,
             ..Default::default()
         })
-        .insert(GlobalTransform::default())
         .with_children(|parent| {
             parent
                 .spawn(SpriteBundle {
@@ -442,7 +445,11 @@ pub fn fill_gameboard(
                     let tile_desc = game_board.forward[index].unwrap();
                     let tile_entity = parent
                         .spawn(SpriteSheetBundle {
-                            texture_atlas: game_assets.tiles.clone(),
+                            atlas: TextureAtlas {
+                                layout: game_assets.tiles_layout.clone(),
+                                index: tile_desc.get_index(),
+                            },
+                            texture: game_assets.tiles.clone(),
                             transform: Transform {
                                 translation: Vec3::new(
                                     (x as f32 * tile_width) + (tile_width / 2.),
@@ -452,7 +459,7 @@ pub fn fill_gameboard(
                                 scale: Vec3::new(SPRITE_SCALE, SPRITE_SCALE, 1.0),
                                 ..Default::default()
                             },
-                            sprite: TextureAtlasSprite::new(tile_desc.get_index()),
+                            sprite: Sprite::default(),
                             ..Default::default()
                         })
                         .insert(Tile)

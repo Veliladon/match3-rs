@@ -3,7 +3,8 @@ use bevy::prelude::*;
 #[derive(Resource)]
 pub struct GameAssets {
     pub background: Handle<Image>,
-    pub tiles: Handle<TextureAtlas>,
+    pub tiles: Handle<Image>,
+    pub tiles_layout: Handle<TextureAtlasLayout>,
 }
 
 #[derive(Resource, Copy, Clone, Debug)]
